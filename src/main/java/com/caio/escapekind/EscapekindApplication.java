@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class EscapekindApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(EscapekindApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(EscapekindApplication.class, args);
+    }
 }

@@ -1,18 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscapeKind</title>
-    <link rel="stylesheet" href="/css/style.css">
-  </head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EscapeKind – Escape Room Educativo</title>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
-<script src="/js/app.js"></script>
 <body>
-<h1>EscapeKind</h1>
-<p>Protótipo inicial do escape room educativo sobre bullying e cyberbullying.</p>
 
-<button>Iniciar jogo</button>
+  <!-- ═══════════════════════════════════════════════════
+       BARRA DE ACESSIBILIDADE
+  ════════════════════════════════════════════════════ -->
+  <div class="accessibility-bar" role="toolbar" aria-label="Opções de acessibilidade">
+    <button id="btn-low-stimulus" class="btn-access" aria-pressed="false"
+            title="Ativa o Modo Baixo Estímulo: reduz animações e simplifica o ecrã">
+      🧠 Modo Baixo Estímulo
+    </button>
+    <button id="btn-font-up" class="btn-access" aria-label="Aumentar tamanho do texto">A+</button>
+    <button id="btn-font-down" class="btn-access" aria-label="Diminuir tamanho do texto">A−</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ECRÃ DE INÍCIO
+  ════════════════════════════════════════════════════ -->
+  <main id="screen-start" class="screen active" role="main">
+    <div class="start-container">
+      <h1 class="game-title">EscapeKind</h1>
+      <p class="game-subtitle">Escape Room Digital sobre Bullying e Cyberbullying</p>
+      <p class="game-intro">
+        Assumirás o papel de um <strong>espectador</strong>. As tuas decisões determinam
+        o que acontece ao Pedro e a todos os que o rodeiam.<br><br>
+        Não há respostas certas óbvias — há consequências.
+      </p>
+      <button id="btn-start" class="btn-primary">Iniciar Jogo</button>
+      <p class="note">Jogo anónimo. Nenhum dado pessoal é recolhido.</p>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════
+       ECRÃ DE LOADING
+  ════════════════════════════════════════════════════ -->
+  <div id="screen-loading" class="screen" role="status" aria-live="polite">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p>A carregar…</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ECRÃ DE JOGO
+  ════════════════════════════════════════════════════ -->
+  <main id="screen-game" class="screen" role="main" aria-live="polite">
+    <header class="game-header">
+      <span id="chapter-label" class="chapter-label"></span>
+      <div class="score-bar" aria-label="Pontuação de Apoio Seguro atual">
+        <span>Apoio:</span>
+        <div class="score-track" role="progressbar" aria-valuemin="0" aria-valuemax="9">
+          <div id="score-fill" class="score-fill"></div>
+        </div>
+        <span id="score-value">0</span>
+      </div>
+    </header>
+
+    <div class="scene-container">
+      <figure class="scene-image-wrap">
+        <img id="scene-image" src="" alt="" role="img" />
+      </figure>
+      <div class="scene-text-wrap">
+        <p id="scene-text" class="scene-text"></p>
+      </div>
+    </div>
+
+    <div id="choices-container" class="choices-container" role="group" aria-label="As tuas opções"></div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════
+       ECRÃ DE FIM DE JOGO
+  ════════════════════════════════════════════════════ -->
+  <main id="screen-end" class="screen" role="main">
+    <div class="end-container">
+      <h2 id="end-title" class="end-title"></h2>
+      <div id="end-badge" class="end-badge" aria-hidden="true"></div>
+      <p id="end-message" class="end-message"></p>
+      <div class="score-final-wrap">
+        <span class="score-label">Pontuação de Apoio Seguro</span>
+        <span id="end-score" class="score-final"></span>
+        <span class="score-max">/ 9</span>
+      </div>
+      <div class="end-resources">
+        <h3>Recursos de apoio</h3>
+        <ul>
+          <li><a href="https://www.pside.pt" target="_blank" rel="noopener">PSIDE – Programa de Saúde e Inclusão Digital Escolar</a></li>
+          <li><a href="https://apav.pt" target="_blank" rel="noopener">APAV – Apoio à Vítima</a></li>
+          <li><a href="https://www.bullying.pt" target="_blank" rel="noopener">Bullying.pt – Informação e apoio</a></li>
+        </ul>
+      </div>
+      <button id="btn-restart" class="btn-primary">Jogar novamente</button>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════
+       ECRÃ DE ERRO
+  ════════════════════════════════════════════════════ -->
+  <div id="screen-error" class="screen" role="alert">
+    <p>⚠️ Ocorreu um problema de comunicação com o servidor.</p>
+    <p id="error-detail" class="error-detail"></p>
+    <button id="btn-retry" class="btn-primary">Tentar novamente</button>
+  </div>
+
+  <script src="/js/engine.js"></script>
+  <script src="/js/app.js"></script>
 </body>
 </html>

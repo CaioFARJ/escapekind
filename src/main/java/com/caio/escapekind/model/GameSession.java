@@ -17,6 +17,9 @@ public class GameSession {
     @Column(name = "started_at", nullable = false, updatable = false)
     private LocalDateTime startedAt;
 
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
+
     @Column(name = "safe_support_score")
     private Integer safeSupportScore;
 
@@ -37,35 +40,20 @@ public class GameSession {
         }
     }
 
-    public UUID getId() {
-        return id;
-    }
+    // Getters e Setters
+    public UUID getId() { return id; }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
-    }
+    public LocalDateTime getStartedAt() { return startedAt; }
 
-    public Integer getSafeSupportScore() {
-        return safeSupportScore;
-    }
+    public LocalDateTime getEndedAt() { return endedAt; }
+    public void setEndedAt(LocalDateTime endedAt) { this.endedAt = endedAt; }
 
-    public void setSafeSupportScore(Integer safeSupportScore) {
-        this.safeSupportScore = safeSupportScore;
-    }
+    public Integer getSafeSupportScore() { return safeSupportScore; }
+    public void setSafeSupportScore(Integer safeSupportScore) { this.safeSupportScore = safeSupportScore; }
 
-    public String getFinalReached() {
-        return finalReached;
-    }
+    public String getFinalReached() { return finalReached; }
+    public void setFinalReached(String finalReached) { this.finalReached = finalReached; }
 
-    public void setFinalReached(String finalReached) {
-        this.finalReached = finalReached;
-    }
-
-    public List<GameEvent> getEvents() {
-        return events;
-    }
-
-    public void setEvents(List<GameEvent> events) {
-        this.events = events;
-    }
+    public List<GameEvent> getEvents() { return events; }
+    public void setEvents(List<GameEvent> events) { this.events = events; }
 }

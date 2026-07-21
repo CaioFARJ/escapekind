@@ -1,0 +1,12 @@
+<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="220" fill="#1a2e1a"/>
+  <rect x="0" y="160" width="800" height="60" fill="#0f3020"/>
+  <circle cx="360" cy="80" r="16" fill="#4a90d9"/>
+  <rect x="346" y="96" width="28" height="44" fill="#4a90d9"/>
+  <circle cx="440" cy="80" r="16" fill="#4caf50"/>
+  <rect x="426" y="96" width="28" height="44" fill="#4caf50"/>
+  <path d="M388 108 Q400 95 412 108" stroke="#fffacd" stroke-width="3" fill="none"/>
+  <circle cx="400" cy="85" r="60" fill="none" stroke="#4caf50" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="400" cy="85" r="80" fill="none" stroke="#4caf50" stroke-width="1" opacity="0.2"/>
+  <text x="400" y="200" text-anchor="middle" fill="#a0a0b0" font-size="13" font-family="Arial">Momento de Apoio</text>
+</svg>

@@ -5,5 +5,4 @@ public record EventResponseDTO(
         Integer totalScore,
         String finalReached,
         String message
-) {
-}
+) {}

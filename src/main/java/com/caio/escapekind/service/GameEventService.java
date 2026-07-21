@@ -18,8 +18,20 @@ public class GameEventService {
         this.sessionService = sessionService;
     }
 
+    /**
+     * Processa uma escolha do jogador:
+     *   1. Valida que a sessão existe e está em curso.
+     *   2. Calcula os pontos atribuídos à escolha.
+     *   3. Persiste o evento.
+     *   4. Atualiza a pontuação acumulada na sessão.
+     *   5. Devolve a resposta ao front-end.
+     */
     public EventResponseDTO processAndSaveEvent(EventRequestDTO request) {
         GameSession session = sessionService.getSessionById(request.sessionId());
+
+        if (!"IN_PROGRESS".equals(session.getFinalReached())) {
+            throw new IllegalStateException("Não é possível registar eventos numa sessão já encerrada.");
+        }
 
         int points = calculatePoints(request.choiceMade());
 
@@ -34,38 +46,36 @@ public class GameEventService {
 
         int newTotal = session.getSafeSupportScore() + points;
         session.setSafeSupportScore(newTotal);
-        session.setFinalReached(resolveFinal(newTotal));
+        // Nota: o desfecho final só é fixado ao encerrar a sessão (POST /finish).
+        // Aqui actualizamos apenas como indicador provisório.
+        session.setFinalReached(sessionService.resolveFinal(newTotal));
         sessionService.save(session);
 
         return new EventResponseDTO(
                 savedEvent.getId(),
                 newTotal,
                 session.getFinalReached(),
-                "Evento registado com sucesso"
+                "Evento registado com sucesso."
         );
     }
 
-    private int calculatePoints(String choiceMade) {
-        if (choiceMade == null) {
-            return 0;
-        }
-
-        return switch (choiceMade.toLowerCase()) {
-            case "defend" -> 3;
-            case "support" -> 2;
-            case "report" -> 1;
-            case "ignore" -> 0;
-            default -> 0;
+    /**
+     * Tabela de pontuação por tipo de escolha.
+     *
+     * DEFEND  → 3 pts  (intervenção direta e assertiva)
+     * SUPPORT → 2 pts  (apoio à vítima após o incidente)
+     * REPORT  → 1 pt   (reporte a adulto ou autoridade)
+     * IGNORE  → 0 pts  (inação ou cumplicidade passiva)
+     *
+     * Esta lógica reside no servidor para impedir manipulação no browser.
+     */
+    public int calculatePoints(String choiceMade) {
+        if (choiceMade == null) return 0;
+        return switch (choiceMade.toUpperCase()) {
+            case "DEFEND"  -> 3;
+            case "SUPPORT" -> 2;
+            case "REPORT"  -> 1;
+            default        -> 0;
         };
-    }
-
-    private String resolveFinal(int totalScore) {
-        if (totalScore >= 5) {
-            return "POSITIVE";
-        }
-        if (totalScore >= 2) {
-            return "NEUTRAL";
-        }
-        return "NEGATIVE";
     }
 }

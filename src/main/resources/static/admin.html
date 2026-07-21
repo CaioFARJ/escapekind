@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EscapeKind – Painel de Administração</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .admin-container {
+      max-width: 800px;
+      margin: 80px auto 40px;
+      padding: 0 16px;
+    }
+    .admin-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      margin-bottom: 8px;
+    }
+    .admin-subtitle {
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 32px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      display: block;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+    .dist-bar-wrap {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .dist-bar-wrap h3 {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      margin-bottom: 16px;
+    }
+    .dist-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .dist-label {
+      width: 90px;
+      font-size: 0.85rem;
+      color: var(--color-text);
+      text-align: right;
+    }
+    .dist-bar-bg {
+      flex: 1;
+      height: 18px;
+      background-color: var(--color-surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .dist-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .dist-bar-fill.positive { background-color: #4caf50; }
+    .dist-bar-fill.neutral  { background-color: #ffb300; }
+    .dist-bar-fill.negative { background-color: #e94560; }
+    .dist-bar-fill.in_progress { background-color: #533483; }
+    .dist-count {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      min-width: 24px;
+    }
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: var(--color-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .login-box {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-box h2 { margin-bottom: 24px; color: var(--color-accent); }
+    .login-field {
+      width: 100%;
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+    .login-field:focus { outline: 2px solid var(--color-accent); }
+    .login-error {
+      color: var(--color-accent);
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+      min-height: 18px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--color-text); }
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      margin-bottom: 24px;
+    }
+    .refresh-btn:hover { border-color: var(--color-accent); color: var(--color-text); }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay de login -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-box">
+      <h2>Painel Admin</h2>
+      <input id="input-user" class="login-field" type="text" placeholder="Utilizador" autocomplete="username" />
+      <input id="input-pass" class="login-field" type="password" placeholder="Password" autocomplete="current-password" />
+      <p id="login-error" class="login-error"></p>
+      <button class="btn-primary" onclick="doLogin()" style="width:100%">Entrar</button>
+      <a href="/" class="back-link">← Voltar ao jogo</a>
+    </div>
+  </div>
+
+  <!-- Painel principal -->
+  <div class="admin-container" id="admin-panel" style="display:none">
+    <h1 class="admin-title">EscapeKind – Painel de Administração</h1>
+    <p class="admin-subtitle" id="admin-subtitle">A carregar estatísticas…</p>
+
+    <button class="refresh-btn" onclick="loadStats()">↻ Atualizar</button>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-value" id="stat-total">–</span>
+        <span class="stat-label">Sessões totais</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-completed">–</span>
+        <span class="stat-label">Sessões concluídas</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-avg">–</span>
+        <span class="stat-label">Pontuação média</span>
+      </div>
+    </div>
+
+    <div class="dist-bar-wrap">
+      <h3>Distribuição de desfechos</h3>
+      <div id="dist-container"></div>
+    </div>
+
+    <a href="/" class="back-link">← Voltar ao jogo</a>
+  </div>
+
+  <script>
+    let _credentials = null;
+
+    async function doLogin() {
+      const user = document.getElementById('input-user').value.trim();
+      const pass = document.getElementById('input-pass').value;
+      if (!user || !pass) {
+        document.getElementById('login-error').textContent = 'Preenche os dois campos.';
+        return;
+      }
+      _credentials = btoa(`${user}:${pass}`);
+      const ok = await loadStats();
+      if (ok) {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+      } else {
+        document.getElementById('login-error').textContent = 'Credenciais incorretas.';
+        _credentials = null;
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const resp = await fetch('/api/admin/stats', {
+          headers: { 'Authorization': `Basic ${_credentials}` }
+        });
+        if (!resp.ok) return false;
+        const data = await resp.json();
+        renderStats(data);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function renderStats(data) {
+      document.getElementById('stat-total').textContent = data.totalSessions;
+      document.getElementById('stat-completed').textContent = data.completedSessions;
+      document.getElementById('stat-avg').textContent =
+        data.averageScore != null ? data.averageScore.toFixed(1) : '–';
+
+      document.getElementById('admin-subtitle').textContent =
+        `Dados atualizados em ${new Date().toLocaleTimeString('pt-PT')}`;
+
+      const dist = data.finalDistribution || {};
+      const total = data.totalSessions || 1;
+      const order = [
+        { key: 'POSITIVE',    label: 'Positivo',    cls: 'positive' },
+        { key: 'NEUTRAL',     label: 'Neutro',      cls: 'neutral' },
+        { key: 'NEGATIVE',    label: 'Negativo',    cls: 'negative' },
+        { key: 'IN_PROGRESS', label: 'Em curso',    cls: 'in_progress' },
+      ];
+
+      const container = document.getElementById('dist-container');
+      container.innerHTML = '';
+      for (const { key, label, cls } of order) {
+        const count = dist[key] || 0;
+        const pct = Math.round((count / total) * 100);
+        container.innerHTML += `
+          <div class="dist-row">
+            <span class="dist-label">${label}</span>
+            <div class="dist-bar-bg">
+              <div class="dist-bar-fill ${cls}" style="width:${pct}%"></div>
+            </div>
+            <span class="dist-count">${count}</span>
+          </div>`;
+      }
+    }
+
+    // Enter no campo de password faz login
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('input-pass').addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+      });
+    });
+  </script>
+</body>
+</html>

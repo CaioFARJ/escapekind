@@ -1,0 +1,156 @@
+{
+  "title": "EscapeKind",
+  "chapters": [
+    {
+      "id": "chapter1",
+      "title": "Capítulo 1 – O Corredor da Escola",
+      "scenes": [
+        {
+          "id": "c1_s1",
+          "image": "img/corridor.svg",
+          "text": "É segunda-feira de manhã. No corredor principal da escola, vês o teu colega Pedro a ser empurrado contra um cacifo por um grupo de alunos mais velhos. Os outros passam sem parar.",
+          "choices": [
+            { "id": "c1_s1_defend",  "text": "Interpõe-te e diz claramente: «Parem com isso.»", "value": "DEFEND",  "next": "c1_s2_defend" },
+            { "id": "c1_s1_support", "text": "Espera que terminem e vai ter com o Pedro depois.",  "value": "SUPPORT", "next": "c1_s2_support" },
+            { "id": "c1_s1_report",  "text": "Vai ao gabinete do diretor de turma reportar.",      "value": "REPORT",  "next": "c1_s2_report" },
+            { "id": "c1_s1_ignore",  "text": "Continuas a caminhar. Não é problema teu.",         "value": "IGNORE",  "next": "c1_s2_ignore" }
+          ]
+        },
+        {
+          "id": "c1_s2_defend",
+          "image": "img/support.svg",
+          "text": "A tua intervenção direta surpreende os agressores. Eles afastam-se, lançando olhares hostis. O Pedro agradece-te, visivelmente aliviado. Encontras uma pista deixada no chão: um pedaço de papel com um código.",
+          "choices": [
+            { "id": "c1_s2d_next", "text": "Continuar para o próximo desafio.", "value": "SUPPORT", "next": "chapter2_start" }
+          ]
+        },
+        {
+          "id": "c1_s2_support",
+          "image": "img/support.svg",
+          "text": "O Pedro está com a mochila rasgada e parece abalado. Sentas-te com ele, ouves o que aconteceu. Ele valoriza o teu apoio, mas diz que os agressores vão continuar amanhã.",
+          "choices": [
+            { "id": "c1_s2s_next", "text": "Perguntar ao Pedro se quer ir juntos à direção.", "value": "REPORT", "next": "chapter2_start" }
+          ]
+        },
+        {
+          "id": "c1_s2_report",
+          "image": "img/office.svg",
+          "text": "O diretor de turma regista a ocorrência e promete investigar. O Pedro fica protegido por enquanto. No corredor, encontras um bilhete caído no chão.",
+          "choices": [
+            { "id": "c1_s2r_next", "text": "Apanhar o bilhete e avançar.", "value": "SUPPORT", "next": "chapter2_start" }
+          ]
+        },
+        {
+          "id": "c1_s2_ignore",
+          "image": "img/corridor.svg",
+          "text": "Ao virares a esquina, ouves os risos do grupo a eco pelos azulejos. Uma sensação de desconforto fica contigo o resto do dia. Pedro não aparece na aula seguinte.",
+          "choices": [
+            { "id": "c1_s2i_next", "text": "Avançar para o próximo capítulo.", "value": "IGNORE", "next": "chapter2_start" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter2",
+      "title": "Capítulo 2 – A Rede Social",
+      "scenes": [
+        {
+          "id": "chapter2_start",
+          "image": "img/social.svg",
+          "text": "À tarde, no teu telemóvel, aparece uma publicação numa rede social fictícia chamada LinkUp. Um grupo partilhou um vídeo envergonhoso do Pedro, com centenas de comentários a gozar com ele.",
+          "choices": [
+            { "id": "c2_s1_defend",  "text": "Reportar a publicação e escrever uma mensagem de apoio ao Pedro.", "value": "DEFEND",  "next": "c2_s2_defend" },
+            { "id": "c2_s1_support", "text": "Enviar mensagem privada ao Pedro a perguntar se está bem.",       "value": "SUPPORT", "next": "c2_s2_support" },
+            { "id": "c2_s1_report",  "text": "Mostrar a publicação a um adulto de confiança.",                  "value": "REPORT",  "next": "c2_s2_report" },
+            { "id": "c2_s1_ignore",  "text": "Fechas a aplicação. Não queres problemas.",                       "value": "IGNORE",  "next": "c2_s2_ignore" }
+          ]
+        },
+        {
+          "id": "c2_s2_defend",
+          "image": "img/social.svg",
+          "text": "O teu comentário de apoio recebe vários gostos. Outros colegas seguem o teu exemplo e a publicação é removida pela moderação da plataforma. O Pedro envia-te uma mensagem de agradecimento.",
+          "choices": [
+            { "id": "c2_s2d_next", "text": "Avançar para o último capítulo.", "value": "SUPPORT", "next": "chapter3_start" }
+          ]
+        },
+        {
+          "id": "c2_s2_support",
+          "image": "img/support.svg",
+          "text": "O Pedro responde depois de algum tempo: «Obrigado por te preocupares. Estou bem.» A mensagem privada não remove o vídeo, mas o Pedro sabe que não está sozinho.",
+          "choices": [
+            { "id": "c2_s2s_next", "text": "Avançar para o último capítulo.", "value": "SUPPORT", "next": "chapter3_start" }
+          ]
+        },
+        {
+          "id": "c2_s2_report",
+          "image": "img/office.svg",
+          "text": "O adulto contacta a escola, que envia uma notificação formal à plataforma. O processo demora horas, mas o vídeo acaba por ser removido. O Pedro fica grato pela tua iniciativa.",
+          "choices": [
+            { "id": "c2_s2r_next", "text": "Avançar para o último capítulo.", "value": "REPORT", "next": "chapter3_start" }
+          ]
+        },
+        {
+          "id": "c2_s2_ignore",
+          "image": "img/social.svg",
+          "text": "O vídeo acumula mais partilhas durante a noite. Na manhã seguinte, Pedro não vem à escola. A tua inação pesou mais do que esperavas.",
+          "choices": [
+            { "id": "c2_s2i_next", "text": "Avançar para o último capítulo.", "value": "IGNORE", "next": "chapter3_start" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter3",
+      "title": "Capítulo 3 – O Momento Decisivo",
+      "scenes": [
+        {
+          "id": "chapter3_start",
+          "image": "img/classroom.svg",
+          "text": "Na semana seguinte, Pedro está de volta. Durante um trabalho de grupo, o mesmo grupo de agressores começa a excluí-lo deliberadamente, rirem-se das suas ideias e ignorarem as suas sugestões.",
+          "choices": [
+            { "id": "c3_s1_defend",  "text": "Interromperes o grupo: «A ideia do Pedro faz sentido. Vamos usá-la.»",         "value": "DEFEND",  "next": "c3_end_defend" },
+            { "id": "c3_s1_support", "text": "Depois da aula, dizeres ao Pedro que a ideia dele era boa.",                     "value": "SUPPORT", "next": "c3_end_support" },
+            { "id": "c3_s1_report",  "text": "Pedires para falar com o professor no final da aula sobre o que está a acontecer.", "value": "REPORT",  "next": "c3_end_report" },
+            { "id": "c3_s1_ignore",  "text": "Focas-te no trabalho e finges não reparar.",                                       "value": "IGNORE",  "next": "c3_end_ignore" }
+          ]
+        },
+        {
+          "id": "c3_end_defend",
+          "image": "img/support.svg",
+          "text": "O grupo fica em silêncio. O Pedro apresenta a ideia, que acaba por ser usada. No final da aula ele sorri pela primeira vez em semanas. Tu deste um passo real. Isto é ser um espectador ativo.",
+          "isEnd": true,
+          "choices": [
+            { "id": "end_defend", "text": "Ver o meu resultado.", "value": "DEFEND", "next": "GAME_END" }
+          ]
+        },
+        {
+          "id": "c3_end_support",
+          "image": "img/support.svg",
+          "text": "O Pedro agradece. Sabe que há alguém do seu lado. A exclusão não parou hoje, mas semear empatia também importa. Às vezes o apoio silencioso é o primeiro passo.",
+          "isEnd": true,
+          "choices": [
+            { "id": "end_support", "text": "Ver o meu resultado.", "value": "SUPPORT", "next": "GAME_END" }
+          ]
+        },
+        {
+          "id": "c3_end_report",
+          "image": "img/office.svg",
+          "text": "O professor intervém discretamente e o comportamento do grupo muda nas semanas seguintes. A tua ação no canal certo criou uma mudança real, mesmo que invisível para o Pedro naquele momento.",
+          "isEnd": true,
+          "choices": [
+            { "id": "end_report", "text": "Ver o meu resultado.", "value": "REPORT", "next": "GAME_END" }
+          ]
+        },
+        {
+          "id": "c3_end_ignore",
+          "image": "img/corridor.svg",
+          "text": "Pedro abandona o grupo de trabalho e faz o projeto sozinho. Nos meses seguintes, começará a faltar às aulas. A passividade repetida tem consequências. A inação também é uma escolha.",
+          "isEnd": true,
+          "choices": [
+            { "id": "end_ignore", "text": "Ver o meu resultado.", "value": "IGNORE", "next": "GAME_END" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -38,51 +38,23 @@ public class GameEvent {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
 
-    public String getNodeId() {
-        return nodeId;
-    }
+    public String getNodeId() { return nodeId; }
+    public void setNodeId(String nodeId) { this.nodeId = nodeId; }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
+    public String getChoiceMade() { return choiceMade; }
+    public void setChoiceMade(String choiceMade) { this.choiceMade = choiceMade; }
 
-    public String getChoiceMade() {
-        return choiceMade;
-    }
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
 
-    public void setChoiceMade(String choiceMade) {
-        this.choiceMade = choiceMade;
-    }
+    public Integer getPointsAwarded() { return pointsAwarded; }
+    public void setPointsAwarded(Integer pointsAwarded) { this.pointsAwarded = pointsAwarded; }
 
-    public String getEventType() {
-        return eventType;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
-
-    public Integer getPointsAwarded() {
-        return pointsAwarded;
-    }
-
-    public void setPointsAwarded(Integer pointsAwarded) {
-        this.pointsAwarded = pointsAwarded;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public GameSession getSession() {
-        return session;
-    }
-
-    public void setSession(GameSession session) {
-        this.session = session;
-    }
+    public GameSession getSession() { return session; }
+    public void setSession(GameSession session) { this.session = session; }
 }
