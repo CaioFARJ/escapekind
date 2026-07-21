@@ -45,7 +45,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // API REST stateless — CSRF não se aplica
             .authorizeHttpRequests(auth -> auth
                 // Recursos estáticos e raiz
-                .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/img/**").permitAll()
+                .requestMatchers("/", "/index.html", "/admin.html", "/css/**", "/js/**", "/img/**", "/narrative.json").permitAll()
                 // Endpoints públicos do jogo
                 .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/sessions/*/finish").permitAll()
