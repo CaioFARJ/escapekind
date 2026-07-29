@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class SessionNotFoundException extends RuntimeException {
     public SessionNotFoundException(UUID sessionId) {
-        super("Sess„o n„o encontrada: " + sessionId);
+        super("Sess√£o n√£o encontrada: " + sessionId);
     }
 }

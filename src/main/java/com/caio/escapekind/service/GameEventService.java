@@ -22,7 +22,7 @@ public class GameEventService {
         GameSession session = sessionService.getSessionById(request.sessionId());
 
         if (!"IN_PROGRESS".equals(session.getFinalReached())) {
-            throw new IllegalStateException("N„o È possÌvel registar eventos numa sess„o j· encerrada.");
+            throw new IllegalStateException("N√£o √© poss√≠vel registar eventos numa sess√£o j√° encerrada.");
         }
 
         int points = calculatePoints(request.choiceMade());

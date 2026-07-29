@@ -63,7 +63,7 @@ async function initGame() {
 }
 
 function renderScene(scene) {
-  // Imagem — fade + leve zoom ao entrar (classe reiniciada a cada cena)
+  // Imagem: fade + leve zoom ao entrar (classe reiniciada a cada cena)
   ui.sceneImage.classList.remove('scene-image--visible');
   ui.sceneImage.src = scene.image || '';
   ui.sceneImage.alt = scene.chapterTitle || '';
@@ -71,7 +71,7 @@ function renderScene(scene) {
     requestAnimationFrame(() => ui.sceneImage.classList.add('scene-image--visible'));
   };
 
-  // Texto — renderizado com transição suave
+  // Texto: renderizado com transição suave
   ui.sceneText.classList.remove('fade-in');
   void ui.sceneText.offsetWidth; // força reflow para reiniciar animação
   ui.sceneText.textContent = scene.text;
@@ -141,7 +141,7 @@ const END_DATA = {
   NEUTRAL: {
     title: 'Caminho para a Mudança',
     badge: '🤝',
-    message: 'Demonstraste empatia e alguma coragem, mas nem sempre a tua intervenção foi suficiente para parar o bullying. Cada pequena ação conta — e conheces agora formas mais eficazes de agir.',
+    message: 'Demonstraste empatia e alguma coragem, mas nem sempre a tua intervenção foi suficiente para parar o bullying. Cada pequena ação conta, e conheces agora formas mais eficazes de agir.',
   },
   NEGATIVE: {
     title: 'A Inação Tem Consequências',
@@ -169,7 +169,7 @@ function renderEndScreen(score, finalReached) {
 
 /**
  * Anima o número da pontuação final a subir de 0 até ao valor real.
- * Puramente cosmético — respeita o modo baixo estímulo, já que este
+ * Puramente cosmético, respeita o modo baixo estímulo, já que este
  * desativa animações CSS; aqui usamos JS, por isso paramos de imediato
  * se o modo estiver ativo.
  */

@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleSessionNotFound(SessionNotFoundException ex) {
         ErrorResponseDTO body = ErrorResponseDTO.of(
                 HttpStatus.NOT_FOUND.value(),
-                "Sess„o n„o encontrada",
+                "Sess√£o n√£o encontrada",
                 ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);

@@ -45,7 +45,7 @@ public class GameSessionService {
                     session.getSafeSupportScore(),
                     session.getFinalReached(),
                     session.getEndedAt(),
-                    "Sess„o j· tinha sido encerrada anteriormente."
+                    "Sess√£o j√° tinha sido encerrada anteriormente."
             );
         }
 
@@ -58,7 +58,7 @@ public class GameSessionService {
                 saved.getSafeSupportScore(),
                 saved.getFinalReached(),
                 saved.getEndedAt(),
-                "Sess„o encerrada com sucesso."
+                "Sess√£o encerrada com sucesso."
         );
     }
 

@@ -17,7 +17,7 @@ const API_BASE = '/api';
 
 /**
  * Estado interno do motor.
- * Nunca exposto diretamente — acedido através das funções abaixo.
+ * Nunca exposto diretamente, acedido através das funções abaixo.
  */
 let _state = {
   sessionId: null,
