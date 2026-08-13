@@ -32,6 +32,30 @@
         o que acontece ao Pedro e a todos os que o rodeiam.<br><br>
         Não há respostas certas óbvias. Há consequências.
       </p>
+
+      <!-- Banner de retoma: só aparece se houver progresso guardado válido -->
+      <div id="resume-banner" class="resume-banner" hidden>
+        <p class="resume-text">Tens uma partida por terminar.</p>
+        <div class="resume-actions">
+          <button id="btn-resume" class="btn-secondary">Continuar partida</button>
+          <button id="btn-discard" class="btn-link">Começar de novo</button>
+        </div>
+      </div>
+
+      <!-- Pseudónimo: opcional, apenas para o ranking -->
+      <div class="nickname-field">
+        <label for="input-nickname" class="nickname-label">
+          Pseudónimo <span class="nickname-optional">(opcional)</span>
+        </label>
+        <input id="input-nickname" class="nickname-input" type="text"
+               maxlength="20" placeholder="Anónimo"
+               autocomplete="off" spellcheck="false"
+               aria-describedby="nickname-help" />
+        <p id="nickname-help" class="nickname-help">
+          Serve só para apareceres no ranking. Não uses o teu nome verdadeiro.
+        </p>
+      </div>
+
       <button id="btn-start" class="btn-primary">Iniciar Jogo</button>
       <p class="note">Jogo anónimo. Nenhum dado pessoal é recolhido.</p>
     </div>
@@ -51,6 +75,7 @@
   <main id="screen-game" class="screen" role="main" aria-live="polite">
     <header class="game-header">
       <span id="chapter-label" class="chapter-label"></span>
+      <span id="player-label" class="player-label"></span>
       <div class="score-bar" aria-label="Pontuação de Apoio Seguro atual">
         <span>Apoio:</span>
         <div class="score-track" role="progressbar" aria-valuemin="0" aria-valuemax="9">
@@ -85,6 +110,18 @@
         <span id="end-score" class="score-final"></span>
         <span class="score-max">/ 9</span>
       </div>
+
+      <!-- Ranking público das sessões concluídas -->
+      <section id="ranking-wrap" class="ranking-wrap" aria-labelledby="ranking-title" hidden>
+        <h3 id="ranking-title">Ranking</h3>
+        <p id="ranking-status" class="ranking-status" role="status" aria-live="polite"></p>
+        <ol id="ranking-list" class="ranking-list"></ol>
+        <p class="ranking-note">
+          O ranking mede apoio, não competição: cada posição corresponde a escolhas
+          que protegeram alguém.
+        </p>
+      </section>
+
       <div class="end-resources">
         <h3>Recursos de apoio</h3>
         <ul>

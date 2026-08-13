@@ -3,7 +3,9 @@
  *
  * Responsabilidades:
  *  - Gerir a transição entre ecrãs (início / jogo / fim / erro)
- *  - Renderizar cenas e opções de escolha
+ *  - Recolher o pseudónimo opcional do jogador
+ *  - Retomar partidas interrompidas
+ *  - Renderizar cenas, opções de escolha e ranking
  *  - Atualizar a barra de pontuação
  *  - Controlar acessibilidade (Modo Baixo Estímulo, tamanho de fonte)
  *  - Delegar toda a lógica de dados ao EscapeEngine
@@ -26,7 +28,12 @@ const ui = {
   btnLowStimulus:  document.getElementById('btn-low-stimulus'),
   btnFontUp:       document.getElementById('btn-font-up'),
   btnFontDown:     document.getElementById('btn-font-down'),
+  inputNickname:   document.getElementById('input-nickname'),
+  resumeBanner:    document.getElementById('resume-banner'),
+  btnResume:       document.getElementById('btn-resume'),
+  btnDiscard:      document.getElementById('btn-discard'),
   chapterLabel:    document.getElementById('chapter-label'),
+  playerLabel:     document.getElementById('player-label'),
   sceneImage:      document.getElementById('scene-image'),
   sceneText:       document.getElementById('scene-text'),
   choicesContainer:document.getElementById('choices-container'),
@@ -36,6 +43,9 @@ const ui = {
   endBadge:        document.getElementById('end-badge'),
   endMessage:      document.getElementById('end-message'),
   endScore:        document.getElementById('end-score'),
+  rankingWrap:     document.getElementById('ranking-wrap'),
+  rankingList:     document.getElementById('ranking-list'),
+  rankingStatus:   document.getElementById('ranking-status'),
   errorDetail:     document.getElementById('error-detail'),
 };
 
@@ -46,13 +56,40 @@ function showScreen(name) {
   if (screens[name]) screens[name].classList.add('active');
 }
 
+// ─── Arranque ────────────────────────────────────────────────────────────────
+
+/**
+ * Ao carregar a página, verifica se existe progresso guardado localmente
+ * e, em caso afirmativo, oferece ao jogador a hipótese de retomar.
+ * A narrativa é carregada desde já para que a validação da cena seja possível.
+ */
+async function bootstrap() {
+  if (!EscapeEngine.hasSavedProgress()) return;
+  try {
+    await EscapeEngine.loadNarrative();
+    const scene = await EscapeEngine.resumeSession();
+    if (scene && ui.resumeBanner) {
+      ui.resumeBanner.hidden = false;
+    }
+  } catch (err) {
+    /* falha na retoma não bloqueia o início de uma partida nova */
+  }
+}
+
 // ─── Fluxo principal ─────────────────────────────────────────────────────────
 
 async function initGame() {
   showScreen('loading');
   try {
     await EscapeEngine.loadNarrative();
-    await EscapeEngine.startSession();
+
+    const nickname = ui.inputNickname ? ui.inputNickname.value.trim() : null;
+    await EscapeEngine.startSession(nickname);
+    updatePlayerLabel();
+
+    // A sessao nova substitui qualquer progresso guardado anteriormente.
+    if (ui.resumeBanner) ui.resumeBanner.hidden = true;
+
     const firstScene = EscapeEngine.getFirstScene();
     EscapeEngine.setCurrentScene(firstScene);
     renderScene(firstScene);
@@ -60,6 +97,38 @@ async function initGame() {
   } catch (err) {
     showError(err.message);
   }
+}
+
+/**
+ * Retoma a partida guardada, continuando na cena onde o jogador ficou.
+ */
+async function resumeGame() {
+  showScreen('loading');
+  try {
+    await EscapeEngine.loadNarrative();
+    const scene = await EscapeEngine.resumeSession();
+    if (!scene) {           // progresso entretanto invalidado
+      showScreen('start');
+      if (ui.resumeBanner) ui.resumeBanner.hidden = true;
+      return;
+    }
+    updatePlayerLabel();
+    renderScene(scene);
+    showScreen('game');
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+function discardProgress() {
+  EscapeEngine.clearLocalProgress();
+  if (ui.resumeBanner) ui.resumeBanner.hidden = true;
+}
+
+function updatePlayerLabel() {
+  if (!ui.playerLabel) return;
+  const nickname = EscapeEngine.getNickname();
+  ui.playerLabel.textContent = nickname ? `Jogador: ${nickname}` : '';
 }
 
 function renderScene(scene) {
@@ -128,6 +197,7 @@ async function endGame() {
     renderEndScreen(EscapeEngine.getTotalScore(), EscapeEngine.getFinalReached());
     showScreen('end');
   }
+  loadRanking();
 }
 
 // ─── Ecrã de fim ─────────────────────────────────────────────────────────────
@@ -165,6 +235,77 @@ function renderEndScreen(score, finalReached) {
   ui.endBadge.className = `end-badge end-badge--${finalReached.toLowerCase()}`;
 
   animateScoreCount(score);
+}
+
+// ─── Ranking ─────────────────────────────────────────────────────────────────
+
+/**
+ * Carrega e apresenta o ranking público no ecrã de fim de jogo.
+ *
+ * O ranking é deliberadamente apresentado depois da mensagem pedagógica,
+ * para que a leitura do desfecho não seja substituída pela comparação com
+ * outros jogadores. Uma falha ao obter o ranking não perturba o fim do jogo:
+ * a secção é simplesmente ocultada.
+ */
+async function loadRanking() {
+  if (!ui.rankingWrap) return;
+  ui.rankingWrap.hidden = false;
+  ui.rankingList.innerHTML = '';
+  ui.rankingStatus.textContent = 'A carregar ranking…';
+
+  try {
+    const entries = await EscapeEngine.fetchRanking(10);
+
+    if (!entries.length) {
+      ui.rankingStatus.textContent = 'Ainda não há partidas concluídas.';
+      return;
+    }
+
+    const myNickname = EscapeEngine.getNickname();
+    ui.rankingStatus.textContent = '';
+
+    entries.forEach((entry) => {
+      const row = document.createElement('li');
+      row.className = 'ranking-row';
+      // Só destaca quando o jogador escolheu um pseudónimo próprio: com o valor
+      // por omissão, várias sessões partilham o mesmo nome e o destaque seria
+      // atribuído a linhas que não lhe pertencem.
+      if (myNickname && myNickname !== 'Anónimo' && entry.nickname === myNickname) {
+        row.classList.add('ranking-row--self');
+      }
+
+      const pos = document.createElement('span');
+      pos.className = 'ranking-pos';
+      pos.textContent = `${entry.position}.`;
+
+      const name = document.createElement('span');
+      name.className = 'ranking-name';
+      name.textContent = entry.nickname;   // textContent evita injeção de marcação
+
+      const score = document.createElement('span');
+      score.className = 'ranking-score';
+      score.textContent = `${entry.safeSupportScore} pts`;
+
+      const time = document.createElement('span');
+      time.className = 'ranking-time';
+      time.textContent = formatDuration(entry.durationSeconds);
+
+      row.append(pos, name, score, time);
+      ui.rankingList.appendChild(row);
+    });
+  } catch (err) {
+    ui.rankingWrap.hidden = true;
+  }
+}
+
+/**
+ * Formata uma duração em segundos como mm:ss.
+ */
+function formatDuration(seconds) {
+  if (seconds == null) return '—';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 /**
@@ -248,10 +389,29 @@ ui.btnFontDown.addEventListener('click', () => {
 
 ui.btnStart.addEventListener('click', initGame);
 
+if (ui.btnResume)  ui.btnResume.addEventListener('click', resumeGame);
+if (ui.btnDiscard) ui.btnDiscard.addEventListener('click', discardProgress);
+
+// Enter no campo de pseudónimo inicia o jogo
+if (ui.inputNickname) {
+  ui.inputNickname.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') initGame();
+  });
+}
+
 ui.btnRestart.addEventListener('click', () => {
+  if (ui.rankingWrap) ui.rankingWrap.hidden = true;
+  // A partida anterior foi encerrada e o progresso local apagado: o banner
+  // de retoma deixa de fazer sentido e nao pode continuar visivel.
+  if (ui.resumeBanner) ui.resumeBanner.hidden = true;
+  if (ui.inputNickname) ui.inputNickname.value = '';
   showScreen('start');
 });
 
 ui.btnRetry.addEventListener('click', () => {
   showScreen('start');
 });
+
+// ─── Inicialização ───────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', bootstrap);

@@ -146,6 +146,87 @@
       margin-bottom: 24px;
     }
     .refresh-btn:hover { border-color: var(--color-accent); color: var(--color-text); }
+
+    /* ─── Histórico de sessões ─────────────────────────── */
+    .history-wrap {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .history-wrap h3 {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      margin-bottom: 16px;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 620px;
+    }
+    .history-table th {
+      text-align: left;
+      color: var(--color-text-muted);
+      font-weight: 600;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    .history-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+      white-space: nowrap;
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .history-table td.num { font-variant-numeric: tabular-nums; }
+    .history-table td.nick {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .badge.positive    { background-color: #4caf50; }
+    .badge.neutral     { background-color: #ffb300; color: #1a1a2e; }
+    .badge.negative    { background-color: #e94560; }
+    .badge.in_progress { background-color: #533483; }
+    .history-empty {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      padding: 12px 0;
+    }
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .pager button {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      padding: 5px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .pager button:hover:not(:disabled) {
+      border-color: var(--color-accent);
+      color: var(--color-text);
+    }
+    .pager button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .pager-info { font-size: 0.8rem; color: var(--color-text-muted); }
   </style>
 </head>
 <body>
@@ -167,7 +248,7 @@
     <h1 class="admin-title">EscapeKind – Painel de Administração</h1>
     <p class="admin-subtitle" id="admin-subtitle">A carregar estatísticas…</p>
 
-    <button class="refresh-btn" onclick="loadStats()">↻ Atualizar</button>
+    <button class="refresh-btn" onclick="refreshAll()">↻ Atualizar</button>
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -189,6 +270,32 @@
       <div id="dist-container"></div>
     </div>
 
+    <!-- Histórico paginado de sessões individuais -->
+    <div class="history-wrap">
+      <h3>Histórico de sessões</h3>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Pseudónimo</th>
+            <th>Início</th>
+            <th>Duração</th>
+            <th>Pontuação</th>
+            <th>Escolhas</th>
+            <th>Desfecho</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+      <p id="history-empty" class="history-empty" style="display:none">
+        Ainda não há sessões registadas.
+      </p>
+      <div class="pager">
+        <button id="btn-prev" onclick="changePage(-1)">← Anterior</button>
+        <span id="pager-info" class="pager-info"></span>
+        <button id="btn-next" onclick="changePage(1)">Seguinte →</button>
+      </div>
+    </div>
+
     <a href="/" class="back-link">← Voltar ao jogo</a>
   </div>
 
@@ -207,6 +314,7 @@
       if (ok) {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'block';
+        loadHistory();
       } else {
         document.getElementById('login-error').textContent = 'Credenciais incorretas.';
         _credentials = null;
@@ -259,6 +367,107 @@
             <span class="dist-count">${count}</span>
           </div>`;
       }
+    }
+
+    // ─── Histórico de sessões ──────────────────────────────────────────────
+
+    const PAGE_SIZE = 20;
+    let _page = 0;
+    let _totalPages = 0;
+
+    /**
+     * Carrega uma página do histórico e desenha a tabela.
+     * O endpoint GET /api/admin/sessions exige autenticação ADMIN, ao
+     * contrário dos endpoints de jogo, que são públicos.
+     */
+    async function loadHistory() {
+      try {
+        const resp = await fetch(`/api/admin/sessions?page=${_page}&size=${PAGE_SIZE}`, {
+          headers: { 'Authorization': `Basic ${_credentials}` }
+        });
+        if (!resp.ok) return false;
+        const data = await resp.json();
+        renderHistory(data);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function renderHistory(data) {
+      const body = document.getElementById('history-body');
+      const empty = document.getElementById('history-empty');
+      body.innerHTML = '';
+
+      _totalPages = data.totalPages;
+      empty.style.display = data.sessions.length ? 'none' : 'block';
+
+      for (const s of data.sessions) {
+        const tr = document.createElement('tr');
+        tr.appendChild(cell(s.nickname, 'nick'));
+        tr.appendChild(cell(formatDate(s.startedAt)));
+        tr.appendChild(cell(formatDuration(s.durationSeconds), 'num'));
+        tr.appendChild(cell(s.safeSupportScore != null ? s.safeSupportScore : '—', 'num'));
+        tr.appendChild(cell(s.eventCount, 'num'));
+
+        const td = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = `badge ${s.finalReached.toLowerCase()}`;
+        badge.textContent = LABELS[s.finalReached] || s.finalReached;
+        td.appendChild(badge);
+        tr.appendChild(td);
+
+        body.appendChild(tr);
+      }
+
+      document.getElementById('pager-info').textContent =
+        data.totalElements
+          ? `Página ${data.page + 1} de ${data.totalPages} · ${data.totalElements} sessões`
+          : '';
+      document.getElementById('btn-prev').disabled = data.page <= 0;
+      document.getElementById('btn-next').disabled = data.page >= data.totalPages - 1;
+    }
+
+    const LABELS = {
+      POSITIVE: 'Positivo',
+      NEUTRAL: 'Neutro',
+      NEGATIVE: 'Negativo',
+      IN_PROGRESS: 'Em curso',
+    };
+
+    /** Cria uma célula usando textContent, evitando injeção de marcação. */
+    function cell(value, cls) {
+      const td = document.createElement('td');
+      if (cls) td.className = cls;
+      td.textContent = value;
+      return td;
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('pt-PT', {
+        day: '2-digit', month: '2-digit', year: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function formatDuration(seconds) {
+      if (seconds == null) return '—';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function changePage(delta) {
+      const next = _page + delta;
+      if (next < 0 || next >= _totalPages) return;
+      _page = next;
+      loadHistory();
+    }
+
+    function refreshAll() {
+      loadStats();
+      loadHistory();
     }
 
     // Enter no campo de password faz login

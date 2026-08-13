@@ -20,9 +20,15 @@ import org.springframework.security.web.SecurityFilterChain;
  * Configuração de segurança da aplicação.
  *
  * Regras:
- *  - Recursos estáticos (HTML, CSS, JS) → públicos
- *  - POST /api/sessions e POST /api/events → públicos (jogadores anónimos)
- *  - GET /api/admin/** → requer autenticação HTTP Basic com papel ADMIN
+ *  - Recursos estáticos (HTML, CSS, JS, imagens) → públicos
+ *  - POST /api/sessions, POST /api/events, POST /api/sessions/*&#47;finish → públicos
+ *  - GET /api/ranking → público (mostrado ao jogador no fim do jogo)
+ *  - /api/admin/** → requer autenticação HTTP Basic com papel ADMIN
+ *
+ * O jogo é integralmente jogável sem autenticação. Toda a recolha de dados
+ * (sessões e eventos) ocorre em endpoints públicos, identificados apenas pelo
+ * UUID de sessão gerado pelo servidor. A autenticação existe exclusivamente
+ * para proteger o painel de administração, onde os dados são consultados.
  */
 @Configuration
 @EnableWebSecurity
@@ -46,10 +52,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Recursos estáticos e raiz
                 .requestMatchers("/", "/index.html", "/admin.html", "/css/**", "/js/**", "/img/**", "/narrative.json").permitAll()
-                // Endpoints públicos do jogo
+                // Endpoints públicos do jogo — jogadores anónimos, sem login
                 .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/sessions/*/finish").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/events").permitAll()
+                // Ranking público — apresentado no ecrã de fim de jogo
+                .requestMatchers(HttpMethod.GET, "/api/ranking").permitAll()
+                // Leitura da própria sessão — permite retomar partidas interrompidas
+                .requestMatchers(HttpMethod.GET, "/api/sessions/*").permitAll()
                 // Painel de administração — requer autenticação
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Tudo o resto requer autenticação

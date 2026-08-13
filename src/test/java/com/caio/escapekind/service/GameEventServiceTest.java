@@ -101,14 +101,6 @@ class GameEventServiceTest {
     void processAndSaveEvent_accumulatesScore() {
         mockSession.setSafeSupportScore(2); // já havia 2 pontos
         when(sessionService.getSessionById(sessionId)).thenReturn(mockSession);
-        when(sessionService.resolveFinal(any(Integer.class)))
-                .thenAnswer(inv -> {
-                    int s = inv.getArgument(0);
-                    if (s >= 7) return "POSITIVE";
-                    if (s >= 3) return "NEUTRAL";
-                    return "NEGATIVE";
-                });
-
         GameEvent saved = new GameEvent();
         saved.setPointsAwarded(3);
         // Usa reflexão para simular ID gerado
