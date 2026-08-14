@@ -752,3 +752,117 @@ body.low-stimulus .resume-banner {
     display: none; /* o tempo é informação secundária em ecrãs estreitos */
   }
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACRESCENTAR AO FIM DE src/main/resources/static/css/style.css
+
+   Estilos do enigma "Reunir Provas": lista de fragmentos com caixas de
+   seleção, botão de confirmação e nota de resultado no ecrã final.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.evidence-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.evidence-item:hover {
+  border-color: var(--color-accent2);
+}
+
+/* Estado selecionado, aplicado via :has para não precisar de JavaScript */
+.evidence-item:has(.evidence-check:checked) {
+  border-color: var(--color-accent);
+  background-color: var(--color-surface2);
+}
+
+.evidence-item:has(.evidence-check:disabled) {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.evidence-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.evidence-check:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.evidence-text {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.evidence-note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-bottom: 14px;
+  min-height: 18px;
+}
+
+.btn-evidence-submit {
+  display: block;
+  width: 100%;
+}
+
+.btn-evidence-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Nota de resultado no ecrã final ────────────────────────────────────── */
+
+.evidence-note-final {
+  background-color: var(--color-surface);
+  border-left: 3px solid var(--color-text-muted);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.evidence-note-final--forte   { border-left-color: #4caf50; }
+.evidence-note-final--fraca   { border-left-color: #ffb300; }
+.evidence-note-final--nenhuma { border-left-color: #e94560; }
+
+/* ─── Modo Baixo Estímulo ────────────────────────────────────────────────── */
+
+body.low-stimulus .evidence-item:has(.evidence-check:checked) {
+  background-color: transparent;
+  border-color: var(--color-text-muted);
+}
+
+body.low-stimulus .evidence-note-final {
+  border-left-color: var(--color-text-muted);
+}
+
+/* ─── Responsivo ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .evidence-item { padding: 12px; }
+  .evidence-text { font-size: 0.86rem; }
+}

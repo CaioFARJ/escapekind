@@ -39,13 +39,25 @@
         {
           "id": "c1_s2_defend",
           "image": "img/support.svg",
-          "text": "A tua intervenção direta surpreende os agressores. Eles afastam-se, lançando olhares hostis. O Pedro agradece-te, visivelmente aliviado. Encontras uma pista deixada no chão: um pedaço de papel com um código.",
+          "text": "A tua intervenção direta surpreende os agressores. Eles afastam-se, lançando olhares hostis. O Pedro agradece-te, visivelmente aliviado. No chão, junto ao cacifo, fica um papel dobrado que caiu do bolso de um deles.",
           "choices": [
             {
               "id": "c1_s2d_next",
               "text": "Continuar para o próximo desafio.",
               "value": "CONTINUE",
               "next": "chapter2_start"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_papel",
+              "text": "Um papel dobrado que caiu do bolso de um deles, com o horário do Pedro anotado e três nomes.",
+              "valid": true
+            },
+            {
+              "id": "ev_olhares",
+              "text": "«Lançaram-me olhares hostis quando me meti.»",
+              "valid": false
             }
           ]
         },
@@ -60,18 +72,42 @@
               "value": "CONTINUE",
               "next": "chapter2_start"
             }
+          ],
+          "evidence": [
+            {
+              "id": "ev_mochila",
+              "text": "Uma fotografia da mochila do Pedro rasgada, tirada nesse dia, com a data no telemóvel.",
+              "valid": true
+            },
+            {
+              "id": "ev_abalado",
+              "text": "«O Pedro parecia abalado quando falei com ele.»",
+              "valid": false
+            }
           ]
         },
         {
           "id": "c1_s2_report",
           "image": "img/office.svg",
-          "text": "O diretor de turma regista a ocorrência e promete investigar. O Pedro fica protegido por enquanto. No corredor, encontras um bilhete caído no chão.",
+          "text": "O diretor de turma regista a ocorrência e promete investigar. O Pedro fica protegido por enquanto. Sais do gabinete com uma cópia do registo na mão.",
           "choices": [
             {
               "id": "c1_s2r_next",
               "text": "Apanhar o bilhete e avançar.",
               "value": "CONTINUE",
               "next": "chapter2_start"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_registo",
+              "text": "A cópia do registo de ocorrência que o diretor de turma preencheu, com data e assinatura.",
+              "valid": true
+            },
+            {
+              "id": "ev_promessa",
+              "text": "«O diretor de turma prometeu investigar.»",
+              "valid": false
             }
           ]
         },
@@ -85,6 +121,18 @@
               "text": "Avançar para o próximo capítulo.",
               "value": "CONTINUE",
               "next": "chapter2_start"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_risos",
+              "text": "«Ouvi risos no corredor depois de virar a esquina.»",
+              "valid": false
+            },
+            {
+              "id": "ev_sensacao",
+              "text": "«Fiquei com a sensação de que algo estava errado.»",
+              "valid": false
             }
           ]
         }
@@ -132,9 +180,21 @@
           "choices": [
             {
               "id": "c2_s2d_next",
-              "text": "Avançar para o último capítulo.",
+              "text": "Avançar.",
               "value": "CONTINUE",
-              "next": "chapter3_start"
+              "next": "puzzle_dossie"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_captura",
+              "text": "Uma captura de ecrã da publicação no LinkUp antes de ser removida, com o nome da conta e a hora.",
+              "valid": true
+            },
+            {
+              "id": "ev_gostos",
+              "text": "«Vários colegas puseram gosto no meu comentário de apoio.»",
+              "valid": false
             }
           ]
         },
@@ -145,9 +205,21 @@
           "choices": [
             {
               "id": "c2_s2s_next",
-              "text": "Avançar para o último capítulo.",
+              "text": "Avançar.",
               "value": "CONTINUE",
-              "next": "chapter3_start"
+              "next": "puzzle_dossie"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_conversa",
+              "text": "A conversa guardada em que o Pedro descreve o que lhe fizeram, com data e hora.",
+              "valid": true
+            },
+            {
+              "id": "ev_bem",
+              "text": "«O Pedro respondeu que estava bem.»",
+              "valid": false
             }
           ]
         },
@@ -158,9 +230,21 @@
           "choices": [
             {
               "id": "c2_s2r_next",
-              "text": "Avançar para o último capítulo.",
+              "text": "Avançar.",
               "value": "CONTINUE",
-              "next": "chapter3_start"
+              "next": "puzzle_dossie"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_notificacao",
+              "text": "O comprovativo da notificação formal que a escola enviou à plataforma.",
+              "valid": true
+            },
+            {
+              "id": "ev_demora",
+              "text": "«O processo demorou horas até o vídeo sair.»",
+              "valid": false
             }
           ]
         },
@@ -171,7 +255,62 @@
           "choices": [
             {
               "id": "c2_s2i_next",
-              "text": "Avançar para o último capítulo.",
+              "text": "Avançar.",
+              "value": "CONTINUE",
+              "next": "puzzle_dossie"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "ev_partilhas",
+              "text": "«Soube que o vídeo tinha muitas partilhas durante a noite.»",
+              "valid": false
+            },
+            {
+              "id": "ev_faltou",
+              "text": "«Na manhã seguinte o Pedro não veio à escola.»",
+              "valid": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interlude",
+      "title": "Interlúdio – O Dossiê",
+      "scenes": [
+        {
+          "id": "puzzle_dossie",
+          "type": "puzzle",
+          "image": "img/office.svg",
+          "text": "Estás à porta do gabinete. Sabes que, se entrares e disseres apenas «andam a arreliar o Pedro», a conversa acaba em cinco minutos e nada muda.\n\nTiras do bolso o que foste juntando nestes dias. Nem tudo o que sabes serve para alguma coisa. Uma queixa sustenta-se em factos concretos: o que aconteceu, quando, e quem pode confirmar. Impressões e boatos, por mais verdadeiros que pareçam, não protegem ninguém.\n\nEscolhe o que levas contigo.",
+          "submitLabel": "Entrar no gabinete",
+          "universalEvidence": [
+            {
+              "id": "ev_toda_gente",
+              "text": "«Toda a gente na escola sabe que aquele grupo faz isto.»",
+              "valid": false
+            },
+            {
+              "id": "ev_inveja",
+              "text": "«Acho que eles têm inveja do Pedro.»",
+              "valid": false
+            }
+          ],
+          "outcomes": {
+            "FORTE": {
+              "text": "A funcionária olha para o que lhe estendes e chama a coordenadora.\n\nNão é a tua palavra contra a deles. É uma data, um nome de conta, um horário anotado à mão. Coisas que existem fora da tua cabeça e que outra pessoa pode verificar.\n\n«Isto dá para trabalhar», diz ela. E, pela primeira vez, sentes que alguma coisa vai mesmo acontecer."
+            },
+            "FRACA": {
+              "text": "A coordenadora ouve-te com atenção e aponta duas ou três coisas.\n\nDepois hesita num dos papéis que lhe deste. «Isto é o que tu achas, não é o que aconteceu. Consegues mostrar-me alguma coisa com data?»\n\nFicas com a sensação de que tinhas mais do que soubeste mostrar. Alguma coisa vai andar, mas mais devagar do que devia."
+            },
+            "NENHUMA": {
+              "text": "«E tens como provar isso?»\n\nA pergunta não é hostil. É a pergunta que qualquer adulto teria de fazer.\n\nPercebes que passaste dias ao lado disto sem guardar nada. O que sabes é verdade, mas não tens como o mostrar a ninguém. A coordenadora regista o teu nome e diz que vai estar atenta. Sabes que não chega."
+            }
+          },
+          "choices": [
+            {
+              "text": "Continuar.",
               "value": "CONTINUE",
               "next": "chapter3_start"
             }
@@ -254,7 +393,12 @@
               "value": "CONTINUE",
               "next": "GAME_END"
             }
-          ]
+          ],
+          "textVariants": {
+            "FORTE": "O professor já tinha sido informado pela coordenação e sabe exatamente o que se passa. A intervenção é rápida e documentada. O grupo é chamado, os encarregados de educação são contactados, e o comportamento muda de forma visível nas semanas seguintes.\n\nNão foi a tua coragem sozinha que resolveu isto. Foi a tua coragem com aquilo que soubeste guardar.",
+            "FRACA": "O professor intervém discretamente e o comportamento do grupo muda nas semanas seguintes. A tua ação no canal certo criou uma mudança real, mesmo que invisível para o Pedro naquele momento.",
+            "NENHUMA": "O professor ouve-te e fala com o grupo no final da aula. Sem nada concreto em cima da mesa, a conversa fica pelo aviso genérico.\n\nDurante alguns dias parece resultar. Depois volta tudo ao mesmo, com mais cuidado para não haver testemunhas."
+          }
         },
         {
           "id": "c3_end_ignore",

@@ -43,6 +43,7 @@ const ui = {
   endBadge:        document.getElementById('end-badge'),
   endMessage:      document.getElementById('end-message'),
   endScore:        document.getElementById('end-score'),
+  evidenceNote:    document.getElementById('evidence-note-final'),
   rankingWrap:     document.getElementById('ranking-wrap'),
   rankingList:     document.getElementById('ranking-list'),
   rankingStatus:   document.getElementById('ranking-status'),
@@ -132,6 +133,26 @@ function updatePlayerLabel() {
 }
 
 function renderScene(scene) {
+  if (scene.type === 'puzzle') {
+    renderPuzzle(scene);
+    return;
+  }
+  renderNarrativeScene(scene);
+}
+
+/**
+ * Escolhe o texto de uma cena, tendo em conta variantes que dependem do
+ * resultado do enigma. Cenas sem variantes usam o texto normal.
+ */
+function sceneText(scene) {
+  const quality = EscapeEngine.getEvidenceQuality();
+  if (scene.textVariants && quality && scene.textVariants[quality]) {
+    return scene.textVariants[quality];
+  }
+  return scene.text;
+}
+
+function renderNarrativeScene(scene) {
   // Imagem: fade + leve zoom ao entrar (classe reiniciada a cada cena)
   ui.sceneImage.classList.remove('scene-image--visible');
   ui.sceneImage.src = scene.image || '';
@@ -143,7 +164,7 @@ function renderScene(scene) {
   // Texto: renderizado com transição suave
   ui.sceneText.classList.remove('fade-in');
   void ui.sceneText.offsetWidth; // força reflow para reiniciar animação
-  ui.sceneText.textContent = scene.text;
+  ui.sceneText.textContent = sceneText(scene);
   ui.sceneText.classList.add('fade-in');
 
   // Cabeçalho do capítulo
@@ -163,6 +184,113 @@ function renderScene(scene) {
 
   // Atualiza barra de pontuação
   updateScoreBar(EscapeEngine.getTotalScore());
+}
+
+// ─── Enigma "Reunir Provas" ─────────────────────────────────────────────────
+
+/**
+ * Apresenta o enigma: o texto da cena e a lista de fragmentos recolhidos, cada
+ * um numa caixa de selecao.
+ *
+ * O botao de confirmacao fica desativado enquanto nada estiver selecionado,
+ * para que o jogador nao submeta um dossie vazio por engano. A unica excecao e
+ * o percurso que nao recolheu fragmento algum, em que a submissao vazia e a
+ * unica acao possivel — e faz parte da licao.
+ */
+function renderPuzzle(scene) {
+  ui.sceneImage.classList.remove('scene-image--visible');
+  ui.sceneImage.src = scene.image || '';
+  ui.sceneImage.alt = scene.chapterTitle || '';
+  ui.sceneImage.onload = () => {
+    requestAnimationFrame(() => ui.sceneImage.classList.add('scene-image--visible'));
+  };
+
+  ui.sceneText.classList.remove('fade-in');
+  void ui.sceneText.offsetWidth;
+  ui.sceneText.textContent = scene.text;
+  ui.sceneText.classList.add('fade-in');
+  ui.chapterLabel.textContent = scene.chapterTitle || '';
+
+  const options = EscapeEngine.getPuzzleOptions(scene);
+  ui.choicesContainer.innerHTML = '';
+
+  const lista = document.createElement('div');
+  lista.className = 'evidence-list';
+  lista.setAttribute('role', 'group');
+  lista.setAttribute('aria-label', 'Fragmentos que recolheste');
+
+  options.forEach((frag, i) => {
+    const linha = document.createElement('label');
+    linha.className = 'evidence-item';
+
+    const cx = document.createElement('input');
+    cx.type = 'checkbox';
+    cx.className = 'evidence-check';
+    cx.value = frag.id;
+    cx.id = `ev-${i}`;
+
+    const txt = document.createElement('span');
+    txt.className = 'evidence-text';
+    txt.textContent = frag.text;
+
+    linha.append(cx, txt);
+    lista.appendChild(linha);
+  });
+
+  const btn = document.createElement('button');
+  btn.className = 'btn-primary btn-evidence-submit';
+  btn.textContent = scene.submitLabel || 'Confirmar';
+
+  const nota = document.createElement('p');
+  nota.className = 'evidence-note';
+  nota.textContent = 'Seleciona o que levas contigo.';
+
+  const atualizaBotao = () => {
+    const n = lista.querySelectorAll('.evidence-check:checked').length;
+    const semValidos = !options.some(o => o.valid);
+    btn.disabled = (n === 0 && !semValidos);
+    nota.textContent = btn.disabled
+      ? 'Seleciona o que levas contigo.'
+      : `${n} ${n === 1 ? 'fragmento selecionado' : 'fragmentos selecionados'}.`;
+  };
+  lista.addEventListener('change', atualizaBotao);
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    lista.querySelectorAll('.evidence-check').forEach(c => { c.disabled = true; });
+    const escolhidos = Array.from(lista.querySelectorAll('.evidence-check:checked'))
+                            .map(c => c.value);
+    try {
+      const quality = await EscapeEngine.submitPuzzle(scene, options, escolhidos);
+      renderPuzzleOutcome(scene, quality);
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+
+  ui.choicesContainer.append(lista, nota, btn);
+  atualizaBotao();
+  updateScoreBar(EscapeEngine.getTotalScore());
+}
+
+/**
+ * Apresenta o desfecho do enigma e o botao para prosseguir ao capitulo 3.
+ */
+function renderPuzzleOutcome(scene, quality) {
+  const desfecho = scene.outcomes && scene.outcomes[quality];
+
+  ui.sceneText.classList.remove('fade-in');
+  void ui.sceneText.offsetWidth;
+  ui.sceneText.textContent = desfecho ? desfecho.text : '';
+  ui.sceneText.classList.add('fade-in');
+
+  ui.choicesContainer.innerHTML = '';
+  const choice = scene.choices[0];
+  const btn = document.createElement('button');
+  btn.className = 'btn-choice';
+  btn.textContent = choice.text;
+  btn.addEventListener('click', () => handleChoice(scene, choice, btn));
+  ui.choicesContainer.appendChild(btn);
 }
 
 async function handleChoice(scene, choice, clickedBtn) {
@@ -235,6 +363,29 @@ function renderEndScreen(score, finalReached) {
   ui.endBadge.className = `end-badge end-badge--${finalReached.toLowerCase()}`;
 
   animateScoreCount(score);
+  renderEvidenceNote();
+}
+
+const EVIDENCE_NOTE = {
+  FORTE: 'Reuniste provas concretas e soubeste distingui-las de impressões. É assim que uma denúncia se sustenta.',
+  FRACA: 'Tinhas mais material do que soubeste usar. Distinguir factos de impressões é o que dá força a uma queixa.',
+  NENHUMA: 'Ficaste sem nada que pudesses mostrar. Guardar registos concretos — datas, capturas, nomes — é o que permite proteger alguém.',
+};
+
+/**
+ * Acrescenta ao ecra final uma linha sobre o desempenho no enigma.
+ * Omitida se o jogador nao chegou a resolve-lo.
+ */
+function renderEvidenceNote() {
+  if (!ui.evidenceNote) return;
+  const quality = EscapeEngine.getEvidenceQuality();
+  if (!quality || !EVIDENCE_NOTE[quality]) {
+    ui.evidenceNote.hidden = true;
+    return;
+  }
+  ui.evidenceNote.textContent = EVIDENCE_NOTE[quality];
+  ui.evidenceNote.className = `evidence-note-final evidence-note-final--${quality.toLowerCase()}`;
+  ui.evidenceNote.hidden = false;
 }
 
 // ─── Ranking ─────────────────────────────────────────────────────────────────
@@ -267,9 +418,9 @@ async function loadRanking() {
     entries.forEach((entry) => {
       const row = document.createElement('li');
       row.className = 'ranking-row';
-      // Só destaca quando o jogador escolheu um pseudónimo próprio: com o valor
-      // por omissão, várias sessões partilham o mesmo nome e o destaque seria
-      // atribuído a linhas que não lhe pertencem.
+      // So destaca quando o jogador escolheu um pseudonimo proprio: com o valor
+      // por omissao, varias sessoes partilham o mesmo nome e o destaque seria
+      // atribuido a linhas que nao lhe pertencem.
       if (myNickname && myNickname !== 'Anónimo' && entry.nickname === myNickname) {
         row.classList.add('ranking-row--self');
       }

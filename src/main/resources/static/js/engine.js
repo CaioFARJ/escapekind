@@ -36,6 +36,8 @@ let _state = {
   currentScene: null,
   totalScore: 0,
   finalReached: 'IN_PROGRESS',
+  evidence: [],            // fragmentos de prova recolhidos ate agora
+  evidenceQuality: null,   // FORTE | FRACA | NENHUMA, apos o enigma
 };
 
 // ─── Persistência local ──────────────────────────────────────────────────────
@@ -58,6 +60,8 @@ function saveLocalProgress() {
       nickname: _state.nickname,
       sceneId: _state.currentScene ? _state.currentScene.id : null,
       totalScore: _state.totalScore,
+      evidence: _state.evidence,
+      evidenceQuality: _state.evidenceQuality,
       savedAt: new Date().toISOString(),
     }));
   } catch (e) {
@@ -122,6 +126,8 @@ async function startSession(nickname = null) {
   _state.nickname = data.nickname;
   _state.totalScore = 0;
   _state.finalReached = 'IN_PROGRESS';
+  _state.evidence = [];
+  _state.evidenceQuality = null;
   saveLocalProgress();
 }
 
@@ -167,6 +173,8 @@ async function resumeSession() {
   _state.totalScore = data.safeSupportScore || 0;
   _state.finalReached = data.finalReached;
   _state.currentScene = scene;
+  _state.evidence = Array.isArray(saved.evidence) ? saved.evidence : [];
+  _state.evidenceQuality = saved.evidenceQuality || null;
   return scene;
 }
 
@@ -246,7 +254,90 @@ function getScene(id) {
  */
 function setCurrentScene(scene) {
   _state.currentScene = scene;
+  collectEvidence(scene);
   saveLocalProgress();
+}
+
+// ─── Enigma "Reunir Provas" ──────────────────────────────────────────────────
+
+/**
+ * Recolhe os fragmentos de prova associados a uma cena.
+ *
+ * Cada cena de desfecho dos capitulos 1 e 2 deixa dois fragmentos: um que
+ * constitui prova utilizavel e outro que nao. A recolha e cumulativa e
+ * idempotente — reentrar na mesma cena nao duplica fragmentos.
+ */
+function collectEvidence(scene) {
+  if (!scene || !Array.isArray(scene.evidence)) return;
+  for (const frag of scene.evidence) {
+    if (!_state.evidence.some(e => e.id === frag.id)) {
+      _state.evidence.push({ ...frag });
+    }
+  }
+}
+
+/**
+ * Devolve os fragmentos a apresentar no enigma: os recolhidos ao longo do
+ * percurso mais os universais definidos na propria cena.
+ *
+ * A ordem e baralhada para que os fragmentos validos nao apareçam sempre nas
+ * mesmas posicoes, o que tornaria o enigma resoluvel sem o ler.
+ */
+function getPuzzleOptions(scene) {
+  const universais = Array.isArray(scene.universalEvidence) ? scene.universalEvidence : [];
+  const todos = [..._state.evidence, ...universais];
+
+  for (let i = todos.length - 1; i > 0; i--) {   // baralhamento de Fisher-Yates
+    const j = Math.floor(Math.random() * (i + 1));
+    [todos[i], todos[j]] = [todos[j], todos[i]];
+  }
+  return todos;
+}
+
+/**
+ * Avalia a selecao do jogador e devolve a qualidade do dossie.
+ *
+ * O criterio nao e a quantidade, e a discriminacao: acertar exige selecionar
+ * todos os fragmentos validos disponiveis e nenhum invalido. Assim o enigma
+ * funciona em qualquer percurso, incluindo os que recolheram poucas provas.
+ *
+ *   FORTE   — todos os validos, nenhum invalido
+ *   FRACA   — pelo menos um valido, mas incompleto ou com invalidos a mistura
+ *   NENHUMA — nenhum valido selecionado, ou nenhum disponivel para recolher
+ */
+function evaluatePuzzle(options, selectedIds) {
+  const validos = options.filter(o => o.valid).map(o => o.id);
+  const escolhidosValidos = selectedIds.filter(id => validos.includes(id));
+  const escolhidosInvalidos = selectedIds.filter(id => !validos.includes(id));
+
+  if (validos.length === 0) return 'NENHUMA';
+  if (escolhidosValidos.length === 0) return 'NENHUMA';
+  if (escolhidosValidos.length === validos.length && escolhidosInvalidos.length === 0) {
+    return 'FORTE';
+  }
+  return 'FRACA';
+}
+
+/**
+ * Submete a resposta ao enigma.
+ *
+ * O resultado e registado como evento com um choiceMade que o servidor nao
+ * reconhece, pelo que nao atribui pontos: o enigma condiciona o desfecho
+ * narrativo, nao a Pontuacao de Apoio Seguro. Uma falha de rede nao impede a
+ * progressao — o resultado local e valido na mesma.
+ */
+async function submitPuzzle(scene, options, selectedIds) {
+  const quality = evaluatePuzzle(options, selectedIds);
+  _state.evidenceQuality = quality;
+  saveLocalProgress();
+
+  const detalhe = selectedIds.join(',').slice(0, 200);
+  try {
+    await registerEvent(scene.id, `EVIDENCE_${quality}|${detalhe}`, 'PUZZLE_ATTEMPT');
+  } catch (e) {
+    /* o enigma nao pontua: um erro de registo nao deve bloquear o jogo */
+  }
+  return quality;
 }
 
 // ─── Getters de estado ───────────────────────────────────────────────────────
@@ -255,6 +346,8 @@ function getCurrentScene() { return _state.currentScene; }
 function getTotalScore()    { return _state.totalScore; }
 function getFinalReached()  { return _state.finalReached; }
 function getSessionId()     { return _state.sessionId; }
+function getEvidence()      { return _state.evidence; }
+function getEvidenceQuality(){ return _state.evidenceQuality; }
 function getNickname()      { return _state.nickname; }
 function getNarrativeTitle(){ return _state.narrative ? _state.narrative.title : ''; }
 function hasSavedProgress() { return readLocalProgress() !== null; }
@@ -272,7 +365,12 @@ window.EscapeEngine = {
   getFirstScene,
   getScene,
   setCurrentScene,
+  getPuzzleOptions,
+  evaluatePuzzle,
+  submitPuzzle,
   getCurrentScene,
+  getEvidence,
+  getEvidenceQuality,
   getTotalScore,
   getFinalReached,
   getSessionId,
