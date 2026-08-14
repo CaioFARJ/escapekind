@@ -1,13 +1,81 @@
-<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
-  <rect width="800" height="220" fill="#1a1a2e"/>
-  <rect x="320" y="20" width="160" height="180" rx="14" fill="#16213e" stroke="#533483" stroke-width="2"/>
-  <rect x="332" y="40" width="136" height="120" fill="#0f3460"/>
-  <rect x="340" y="48" width="120" height="60" rx="4" fill="#1a3050"/>
-  <circle cx="356" cy="62" r="8" fill="#e94560"/>
-  <rect x="370" y="57" width="80" height="6" rx="3" fill="#533483"/>
-  <rect x="370" y="68" width="60" height="5" rx="3" fill="#a0a0b0" opacity="0.5"/>
-  <rect x="340" y="114" width="120" height="4" rx="2" fill="#e94560" opacity="0.6"/>
-  <text x="344" y="135" fill="#a0a0b0" font-size="10" font-family="Arial">142 gostos · 38 partilhas</text>
-  <circle cx="400" cy="186" r="8" fill="#533483" opacity="0.7"/>
-  <text x="400" y="210" text-anchor="middle" fill="#a0a0b0" font-size="13" font-family="Arial">Rede Social LinkUp</text>
+<svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Um telemóvel iluminado no escuro, com uma publicação numa rede social e contadores de partilhas a subir">
+  <defs>
+    <radialGradient id="so-brilho" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0%" stop-color="#4a90d9" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#533483" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#1a1a2e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="so-ecra" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#123055"/><stop offset="100%" stop-color="#0f3460"/>
+    </linearGradient>
+    <linearGradient id="so-vinheta" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#08080f" stop-opacity="0.9"/>
+      <stop offset="26%" stop-color="#08080f" stop-opacity="0"/>
+      <stop offset="74%" stop-color="#08080f" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#08080f" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="220" fill="#141428"/>
+  <rect width="800" height="220" fill="url(#so-brilho)"/>
+  <g font-family="Arial, sans-serif" font-size="9" fill="#a0a0b0">
+    <g opacity="0.30">
+      <rect x="120" y="42" width="150" height="24" rx="5" fill="#16213e"/>
+      <circle cx="134" cy="54" r="5" fill="#e94560" opacity="0.7"/>
+      <rect x="146" y="49" width="76" height="4" rx="2" fill="#a0a0b0" opacity="0.6"/>
+      <rect x="146" y="57" width="52" height="3" rx="1.5" fill="#a0a0b0" opacity="0.4"/>
+    </g>
+    <g opacity="0.22">
+      <rect x="104" y="76" width="150" height="24" rx="5" fill="#16213e"/>
+      <circle cx="118" cy="88" r="5" fill="#e94560" opacity="0.7"/>
+      <rect x="130" y="83" width="66" height="4" rx="2" fill="#a0a0b0" opacity="0.6"/>
+      <rect x="130" y="91" width="44" height="3" rx="1.5" fill="#a0a0b0" opacity="0.4"/>
+    </g>
+    <g opacity="0.30">
+      <rect x="532" y="52" width="150" height="24" rx="5" fill="#16213e"/>
+      <circle cx="546" cy="64" r="5" fill="#533483" opacity="0.8"/>
+      <rect x="558" y="59" width="82" height="4" rx="2" fill="#a0a0b0" opacity="0.6"/>
+      <rect x="558" y="67" width="48" height="3" rx="1.5" fill="#a0a0b0" opacity="0.4"/>
+    </g>
+    <g opacity="0.20">
+      <rect x="548" y="98" width="150" height="24" rx="5" fill="#16213e"/>
+      <circle cx="562" cy="110" r="5" fill="#e94560" opacity="0.6"/>
+      <rect x="574" y="105" width="60" height="4" rx="2" fill="#a0a0b0" opacity="0.6"/>
+      <rect x="574" y="113" width="40" height="3" rx="1.5" fill="#a0a0b0" opacity="0.4"/>
+    </g>
+  </g>
+  <g>
+    <ellipse cx="400" cy="206" rx="70" ry="8" fill="#000" opacity="0.35"/>
+    <rect x="326" y="14" width="148" height="188" rx="16" fill="#0e1424" stroke="#533483" stroke-width="1.8"/>
+    <rect x="336" y="30" width="128" height="156" rx="6" fill="url(#so-ecra)"/>
+    <rect x="382" y="20" width="36" height="4" rx="2" fill="#1a2540"/>
+    <circle cx="352" cy="46" r="8" fill="#8a5fbf"/>
+    <rect x="366" y="41" width="52" height="4" rx="2" fill="#e0e0e0" opacity="0.55"/>
+    <rect x="366" y="49" width="34" height="3" rx="1.5" fill="#a0a0b0" opacity="0.4"/>
+    <rect x="344" y="62" width="112" height="62" rx="4" fill="#0a1e3c"/>
+    <g opacity="0.5">
+      <circle cx="378" cy="102" r="7" fill="#2a3a58"/>
+      <path d="M372 110 h12 l2 14 h-16 z" fill="#2a3a58"/>
+      <circle cx="400" cy="99" r="7.5" fill="#233152"/>
+      <path d="M394 107 h13 l2 17 h-17 z" fill="#233152"/>
+      <circle cx="424" cy="103" r="6.5" fill="#2a3a58"/>
+      <path d="M418 110 h12 l2 14 h-16 z" fill="#2a3a58"/>
+    </g>
+    <polygon points="394,92 410,100 394,108" fill="#e0e0e0" opacity="0.55"/>
+    <rect x="344" y="116" width="112" height="8" fill="#0a1e3c" opacity="0.9"/>
+    <rect x="344" y="118" width="78" height="3" rx="1.5" fill="#e94560" opacity="0.7"/>
+    <text x="348" y="140" fill="#a0a0b0" font-size="9" font-family="Arial, sans-serif">142 gostos · 38 partilhas</text>
+    <g stroke="#533483" stroke-width="1" opacity="0.45">
+      <line x1="344" y1="148" x2="456" y2="148"/>
+    </g>
+    <g opacity="0.45">
+      <circle cx="352" cy="162" r="5" fill="#c94a5e"/>
+      <rect x="364" y="159" width="66" height="3.5" rx="1.75" fill="#a0a0b0"/>
+      <circle cx="352" cy="178" r="5" fill="#8a5fbf"/>
+      <rect x="364" y="175" width="48" height="3.5" rx="1.75" fill="#a0a0b0"/>
+    </g>
+  </g>
+  <rect width="800" height="220" fill="url(#so-vinheta)"/>
+  <text x="400" y="216" text-anchor="middle" fill="#a0a0b0"
+        font-size="12" font-family="Arial, sans-serif" letter-spacing="1.5">REDE SOCIAL LINKUP</text>
 </svg>
