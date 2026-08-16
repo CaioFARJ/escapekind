@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EscapeKind — Prova de Conceito 3D</title>
+<style>
+  :root {
+    --color-bg:        #1a1a2e;
+    --color-surface:   #16213e;
+    --color-surface2:  #0f3460;
+    --color-accent:    #e94560;
+    --color-accent2:   #533483;
+    --color-text:      #e0e0e0;
+    --color-text-muted:#a0a0b0;
+    --color-border:    rgba(255,255,255,0.12);
+    --font-main:       'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--color-bg); }
+  body { font-family: var(--font-main); color: var(--color-text); }
+  #cena { display: block; width: 100%; height: 100%; }
+
+  .painel {
+    position: fixed; top: 16px; left: 16px; width: 310px; max-height: calc(100% - 32px);
+    overflow-y: auto; background: rgba(22,33,62,0.92); border: 1px solid var(--color-border);
+    border-radius: 10px; padding: 16px 18px; backdrop-filter: blur(8px); font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .painel h1 { font-size: 0.95rem; color: var(--color-accent); margin-bottom: 4px; }
+  .painel h2 {
+    font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase;
+    letter-spacing: 0.08em; margin: 16px 0 7px;
+  }
+  .painel p { color: var(--color-text-muted); font-size: 0.76rem; }
+  .painel dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 0.75rem; }
+  .painel dt { color: var(--color-accent2); font-weight: 600; }
+  .painel dd { color: var(--color-text-muted); }
+  kbd {
+    background: var(--color-surface2); border: 1px solid var(--color-border); border-radius: 4px;
+    padding: 1px 6px; font-family: monospace; font-size: 0.72rem; color: var(--color-text);
+  }
+  .botoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .botoes button {
+    background: transparent; border: 1px solid var(--color-border); color: var(--color-text-muted);
+    border-radius: 6px; padding: 5px 11px; cursor: pointer; font-family: var(--font-main);
+    font-size: 0.72rem; transition: 0.2s;
+  }
+  .botoes button:hover { border-color: var(--color-accent); color: var(--color-text); }
+  .botoes button[aria-pressed="true"] { border-color: var(--color-accent); color: var(--color-accent); }
+
+  .metricas {
+    position: fixed; bottom: 16px; right: 16px; background: rgba(22,33,62,0.92);
+    border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px;
+    font-family: monospace; font-size: 0.72rem; color: var(--color-text-muted);
+    backdrop-filter: blur(8px);
+  }
+  .metricas span { color: var(--color-text); }
+  .aviso {
+    position: fixed; inset: 0; display: grid; place-items: center; text-align: center;
+    background: var(--color-bg); padding: 40px; font-size: 0.9rem; color: var(--color-text-muted);
+  }
+  .aviso[hidden] { display: none; }
+</style>
+</head>
+<body>
+
+<canvas id="cena"></canvas>
+
+<div class="painel">
+  <h1>Prova de Conceito 3D</h1>
+  <p>Corredor gerado proceduralmente. Nenhum modelo externo é carregado: toda a
+     geometria é construída a partir de primitivas.</p>
+
+  <h2>Controlos</h2>
+  <dl>
+    <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Deslocar</dd>
+    <dt><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></dt><dd>Alternativa</dd>
+    <dt><kbd>Shift</kbd></dt><dd>Correr</dd>
+  </dl>
+
+  <h2>Visualização</h2>
+  <div class="botoes">
+    <button id="btn-wireframe" aria-pressed="false">Malha poligonal</button>
+    <button id="btn-luzes" aria-pressed="true" data-inicial="true">Iluminação</button>
+    <button id="btn-nevoeiro" aria-pressed="true">Nevoeiro</button>
+    <button id="btn-camara" aria-pressed="false">Câmara aérea</button>
+  </div>
+
+  <h2>Conceitos aplicados</h2>
+  <p id="nota-conceito">
+    <strong>Projeção em perspetiva.</strong> A câmara aplica uma matriz de projeção
+    com campo de visão de 60°, produzindo a convergência das linhas paralelas do
+    corredor num ponto de fuga.
+  </p>
+</div>
+
+<div class="metricas">
+  triângulos <span id="m-tri">—</span><br>
+  chamadas <span id="m-draw">—</span><br>
+  fps <span id="m-fps">—</span>
+</div>
+
+<div class="aviso" id="aviso" hidden>
+  Não foi possível carregar a biblioteca Three.js.<br>
+  Verifica a ligação à Internet e recarrega a página.
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EscapeKind — Prova de conceito de renderização 3D
+
+   Demonstração técnica autónoma, não integrada no jogo. Serve para
+   fundamentar, com implementação real, os conceitos de Computação Gráfica
+   discutidos no relatório.
+
+   Conceitos aplicados e onde estão neste ficheiro:
+
+     Projeção em perspetiva  → PerspectiveCamera, secção CÂMARA
+     Grafo de cena           → criarPersonagem(), hierarquia de Object3D
+     Transformações locais   → animarMarcha(), rotação de membros
+     Modelo de iluminação    → secção ILUMINAÇÃO, materiais MeshStandard
+     Mapeamento de sombras   → renderer.shadowMap, castShadow/receiveShadow
+     Atenuação atmosférica   → THREE.Fog, secção CENA
+     Teste de profundidade   → activado por omissão no WebGLRenderer (z-buffer)
+     Interpolação            → suavização da câmara com lerp
+
+   Toda a geometria é procedimental: não há modelos nem texturas externas.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// ─── Paleta, herdada do jogo para manter coerência visual ───────────────────
+const COR = {
+  fundo:      0x1a1a2e,
+  chao:       0x0f3460,
+  parede:     0x16213e,
+  cacifoA:    0x1c2a4a,
+  cacifoB:    0x16213e,
+  vinco:      0x533483,
+  fecho:      0xe94560,
+  teto:       0x12172b,
+  luz:        0xfffacd,
+  personagem: 0x4a90d9,
+  personagem2:0x3d7cbd,
+};
+
+const COMPRIMENTO = 70;   // profundidade do corredor, em unidades
+const LARGURA     = 9;     // largura livre entre cacifos
+
+// ─── RENDERIZADOR ───────────────────────────────────────────────────────────
+// O WebGLRenderer activa por omissão o teste de profundidade (z-buffer), que
+// resolve a visibilidade por fragmento. É a diferença essencial para o
+// algoritmo do pintor usado nas ilustrações SVG, em que a ordem de desenho
+// tinha de ser gerida manualmente.
+const canvas = document.getElementById('cena');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (e) {
+  document.getElementById('aviso').hidden = false;
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.35;
+
+// ─── CENA ───────────────────────────────────────────────────────────────────
+// O nevoeiro exponencial reproduz a atenuação atmosférica: objectos distantes
+// perdem contraste e aproximam-se da cor de fundo. É o mesmo indicador de
+// profundidade aplicado à mão nas ilustrações SVG, aqui calculado por
+// fragmento em função da distância à câmara.
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(COR.fundo);
+scene.fog = new THREE.FogExp2(COR.fundo, 0.013);
+
+// ─── CÂMARA ─────────────────────────────────────────────────────────────────
+// A matriz de projecção em perspetiva converte coordenadas do espaço da câmara
+// em coordenadas de recorte, produzindo o encurtamento com a distância. É a
+// formalização do que na ilustração SVG foi desenhado à mão com um ponto de
+// fuga.
+const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 400);
+const camaraAerea = { activa: false };
+
+// ─── ILUMINAÇÃO ─────────────────────────────────────────────────────────────
+// Combinação de três contribuições:
+//   ambiente    — aproximação grosseira da luz indirecta
+//   hemisférica — gradiente entre luz do tecto e reflexão do chão
+//   pontuais    — as luminárias, com atenuação com o quadrado da distância
+// Os materiais MeshStandardMaterial usam um modelo baseado em física, uma
+// evolução do modelo de Phong estudado na bibliografia clássica.
+const luzes = new THREE.Group();
+scene.add(luzes);
+
+// Fora do grupo comutavel: garante que desligar a iluminacao produz
+// superficies planas e nao um ecra completamente preto
+const ambiente = new THREE.AmbientLight(0x6a75a5, 1.0);
+scene.add(ambiente);
+
+const hemisferica = new THREE.HemisphereLight(0x9aaee0, 0x1a2a44, 1.1);
+luzes.add(hemisferica);
+
+// Luz direccional unica, responsavel pelo mapa de sombras.
+// Concentrar a projecao de sombras numa so fonte mantem o custo controlado:
+// um mapa de profundidade de 1024 por 1024, renderizado a partir do ponto de
+// vista da luz e amostrado durante a renderizacao da cena.
+const direccional = new THREE.DirectionalLight(0xbfd0ff, 0.9);
+direccional.position.set(6, 14, 8);
+direccional.castShadow = true;
+direccional.shadow.mapSize.set(1024, 1024);
+direccional.shadow.camera.near = 1;
+direccional.shadow.camera.far = 60;
+direccional.shadow.camera.left = -14;
+direccional.shadow.camera.right = 14;
+direccional.shadow.camera.top = 20;
+direccional.shadow.camera.bottom = -20;
+direccional.shadow.bias = -0.0015;
+luzes.add(direccional);
+
+// Luminárias distribuídas ao longo do tecto
+const geoLampada = new THREE.BoxGeometry(2.6, 0.14, 0.7);
+const matLampada = new THREE.MeshBasicMaterial({ color: COR.luz });
+for (let z = -COMPRIMENTO / 2 + 8; z < COMPRIMENTO / 2; z += 16) {
+  const lampada = new THREE.Mesh(geoLampada, matLampada);
+  lampada.position.set(0, 5.4, z);
+  scene.add(lampada);
+
+  // Sem sombras nas luzes pontuais: um mapa de sombras de uma luz pontual e
+  // um mapa cubico de seis faces, custo proibitivo com oito luminarias.
+  const luz = new THREE.PointLight(COR.luz, 55, 36, 1.6);
+  luz.position.set(0, 5.1, z);
+  luzes.add(luz);
+}
+
+// ─── GEOMETRIA DO CORREDOR ──────────────────────────────────────────────────
+const materiais = [];   // registados para o modo de malha poligonal
+
+function material(cor, opcoes = {}) {
+  const m = new THREE.MeshStandardMaterial({
+    color: cor, roughness: 0.85, metalness: 0.05, ...opcoes,
+  });
+  materiais.push(m);
+  return m;
+}
+
+// Pavimento
+const chao = new THREE.Mesh(
+  new THREE.PlaneGeometry(LARGURA + 6, COMPRIMENTO),
+  material(COR.chao, { roughness: 0.62 })
+);
+chao.rotation.x = -Math.PI / 2;
+chao.receiveShadow = true;
+scene.add(chao);
+
+// Tecto
+const teto = new THREE.Mesh(
+  new THREE.PlaneGeometry(LARGURA + 6, COMPRIMENTO),
+  material(COR.teto)
+);
+teto.rotation.x = Math.PI / 2;
+teto.position.y = 5.6;
+scene.add(teto);
+
+/**
+ * Constrói uma bateria de cacifos ao longo de uma das paredes.
+ *
+ * Cada cacifo é uma caixa; as portas e os fechos são filhos do cacifo, pelo
+ * que as suas posições são expressas em coordenadas locais. Deslocar o
+ * cacifo desloca automaticamente os elementos que dele dependem — é a
+ * propriedade essencial de um grafo de cena.
+ */
+function criarCacifos(lado) {
+  const grupo = new THREE.Group();
+  const x = lado * (LARGURA / 2);
+  const geoCorpo  = new THREE.BoxGeometry(0.9, 3.6, 1.4);
+  const geoPorta  = new THREE.BoxGeometry(0.06, 3.2, 1.2);
+  const geoFecho  = new THREE.SphereGeometry(0.075, 10, 8);
+  const matCorpoA = material(COR.cacifoA);
+  const matCorpoB = material(COR.cacifoB);
+  const matPorta  = material(COR.vinco, { roughness: 0.6 });
+  const matFecho  = material(COR.fecho, { roughness: 0.35, metalness: 0.4 });
+
+  let i = 0;
+  for (let z = -COMPRIMENTO / 2 + 1; z < COMPRIMENTO / 2 - 1; z += 1.5) {
+    const cacifo = new THREE.Mesh(geoCorpo, i % 2 ? matCorpoA : matCorpoB);
+    cacifo.position.set(x, 1.8, z);
+    cacifo.castShadow = true;
+    cacifo.receiveShadow = true;
+
+    const porta = new THREE.Mesh(geoPorta, matPorta);
+    porta.position.set(-lado * 0.48, 0, 0);   // coordenadas locais do cacifo
+    cacifo.add(porta);
+
+    const fecho = new THREE.Mesh(geoFecho, matFecho);
+    fecho.position.set(-lado * 0.54, -0.35, 0.34);
+    cacifo.add(fecho);
+
+    grupo.add(cacifo);
+    i++;
+  }
+  return grupo;
+}
+scene.add(criarCacifos(-1), criarCacifos(1));
+
+// Paredes atrás dos cacifos
+for (const lado of [-1, 1]) {
+  const parede = new THREE.Mesh(
+    new THREE.PlaneGeometry(COMPRIMENTO, 5.6),
+    material(COR.parede)
+  );
+  parede.rotation.y = lado * -Math.PI / 2;
+  parede.position.set(lado * (LARGURA / 2 + 1), 2.8, 0);
+  parede.receiveShadow = true;
+  scene.add(parede);
+}
+
+// Parede do fundo, para fechar a perspetiva
+const fundo = new THREE.Mesh(
+  new THREE.PlaneGeometry(LARGURA + 6, 5.6),
+  material(0x0d1226)
+);
+fundo.position.set(0, 2.8, -COMPRIMENTO / 2);
+scene.add(fundo);
+
+// ─── PERSONAGEM ─────────────────────────────────────────────────────────────
+/**
+ * Constrói a personagem como um grafo de cena hierárquico.
+ *
+ *   raiz
+ *    ├── tronco
+ *    │    └── cabeça
+ *    ├── ancaEsq → coxaEsq
+ *    ├── ancaDir → coxaDir
+ *    ├── ombroEsq → bracoEsq
+ *    └── ombroDir → bracoDir
+ *
+ * Os membros são filhos de pivôs colocados na articulação. Rodar o pivô roda
+ * o membro em torno do ponto correcto sem qualquer cálculo de trigonometria
+ * adicional: a matriz de transformação do pai é automaticamente composta com
+ * a do filho. É este encadeamento de matrizes que permite animar a marcha
+ * alterando apenas dois ângulos.
+ */
+function criarPersonagem() {
+  const raiz = new THREE.Group();
+  const matCorpo = material(COR.personagem, { roughness: 0.7 });
+  const matMembro = material(COR.personagem2, { roughness: 0.7 });
+
+  const tronco = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.9, 0.36), matCorpo);
+  tronco.position.y = 1.32;
+  tronco.castShadow = true;
+  raiz.add(tronco);
+
+  const cabeca = new THREE.Mesh(new THREE.SphereGeometry(0.27, 20, 16), matCorpo);
+  cabeca.position.y = 0.72;           // relativo ao tronco
+  cabeca.castShadow = true;
+  tronco.add(cabeca);
+
+  const mochila = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.6, 0.2), matMembro);
+  mochila.position.set(0, -0.04, -0.27);
+  tronco.add(mochila);
+
+  // Pivôs das articulações
+  function membro(x, y, comprimento, largura) {
+    const pivo = new THREE.Group();
+    pivo.position.set(x, y, 0);
+    const geo = new THREE.CylinderGeometry(largura, largura * 0.85, comprimento, 10);
+    const malha = new THREE.Mesh(geo, matMembro);
+    malha.position.y = -comprimento / 2;   // pendura a partir da articulação
+    malha.castShadow = true;
+    pivo.add(malha);
+    return pivo;
+  }
+
+  const pernaEsq = membro(-0.18, 0.86, 0.86, 0.11);
+  const pernaDir = membro( 0.18, 0.86, 0.86, 0.11);
+  const bracoEsq = membro(-0.4,  1.68, 0.72, 0.085);
+  const bracoDir = membro( 0.4,  1.68, 0.72, 0.085);
+  raiz.add(pernaEsq, pernaDir, bracoEsq, bracoDir);
+
+  return { raiz, tronco, pernaEsq, pernaDir, bracoEsq, bracoDir };
+}
+
+const p = criarPersonagem();
+scene.add(p.raiz);
+
+// ─── MOVIMENTO ──────────────────────────────────────────────────────────────
+const teclas = new Set();
+addEventListener('keydown', e => {
+  teclas.add(e.key.toLowerCase());
+  if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
+addEventListener('keyup', e => teclas.delete(e.key.toLowerCase()));
+
+const premida = (...ks) => ks.some(k => teclas.has(k));
+
+const estado = {
+  velocidade: new THREE.Vector3(),
+  faseMarcha: 0,
+  anguloAlvo: 0,
+};
+
+/**
+ * Anima a marcha por interpolação sinusoidal.
+ *
+ * A fase avança proporcionalmente à distância percorrida, e não ao tempo, de
+ * modo que os passos acompanham a velocidade real: parar interrompe o ciclo
+ * na posição em que está. Braços e pernas opostos oscilam em contrafase, o
+ * que reproduz a marcha humana com dois graus de liberdade apenas.
+ */
+function animarMarcha(rapidez, dt) {
+  const amplitude = Math.min(rapidez / 5, 1) * 0.62;
+
+  if (rapidez > 0.05) {
+    estado.faseMarcha += rapidez * dt * 2.4;
+  } else {
+    // Regressa suavemente à posição de repouso
+    estado.faseMarcha += (0 - (estado.faseMarcha % (Math.PI * 2))) * dt * 3;
+  }
+
+  const s = Math.sin(estado.faseMarcha);
+  const c = Math.sin(estado.faseMarcha + Math.PI);
+
+  p.pernaEsq.rotation.x =  s * amplitude;
+  p.pernaDir.rotation.x =  c * amplitude;
+  p.bracoEsq.rotation.x =  c * amplitude * 0.75;
+  p.bracoDir.rotation.x =  s * amplitude * 0.75;
+
+  // Ligeira oscilação vertical do tronco, a duas vezes a cadência dos passos
+  p.tronco.position.y = 1.32 + Math.abs(Math.sin(estado.faseMarcha)) * amplitude * 0.06;
+}
+
+function atualizarMovimento(dt) {
+  const correr = premida('shift');
+  const aceleracao = correr ? 46 : 30;
+  const maxima = correr ? 8.5 : 4.6;
+
+  const dir = new THREE.Vector3();
+  if (premida('w', 'arrowup'))    dir.z -= 1;
+  if (premida('s', 'arrowdown'))  dir.z += 1;
+  if (premida('a', 'arrowleft'))  dir.x -= 1;
+  if (premida('d', 'arrowright')) dir.x += 1;
+
+  if (dir.lengthSq() > 0) {
+    dir.normalize();
+    estado.velocidade.addScaledVector(dir, aceleracao * dt);
+    estado.anguloAlvo = Math.atan2(dir.x, dir.z);
+  }
+
+  // Atrito, aplicado de forma independente da cadência de fotogramas
+  estado.velocidade.multiplyScalar(Math.pow(0.0016, dt));
+  if (estado.velocidade.length() > maxima) estado.velocidade.setLength(maxima);
+
+  p.raiz.position.addScaledVector(estado.velocidade, dt);
+
+  // Limites do corredor
+  const margem = LARGURA / 2 - 1.1;
+  p.raiz.position.x = THREE.MathUtils.clamp(p.raiz.position.x, -margem, margem);
+  p.raiz.position.z = THREE.MathUtils.clamp(
+    p.raiz.position.z, -COMPRIMENTO / 2 + 2, COMPRIMENTO / 2 - 2);
+
+  // Rotação suave para a direcção do movimento, pelo caminho mais curto
+  let delta = estado.anguloAlvo - p.raiz.rotation.y;
+  while (delta >  Math.PI) delta -= Math.PI * 2;
+  while (delta < -Math.PI) delta += Math.PI * 2;
+  p.raiz.rotation.y += delta * Math.min(1, dt * 11);
+
+  animarMarcha(estado.velocidade.length(), dt);
+}
+
+// ─── CÂMARA A SEGUIR A PERSONAGEM ───────────────────────────────────────────
+// A posição da câmara é interpolada linearmente em direcção ao alvo, em vez de
+// lhe ser atribuída directamente. O resultado é um amortecimento exponencial
+// que suaviza as mudanças bruscas de direcção.
+const alvoCamara = new THREE.Vector3();
+function atualizarCamara(dt) {
+  if (camaraAerea.activa) {
+    alvoCamara.set(0, 42, p.raiz.position.z + 0.01);
+    camera.position.lerp(alvoCamara, Math.min(1, dt * 3));
+    camera.lookAt(p.raiz.position.x, 0, p.raiz.position.z);
+    return;
+  }
+  const atras = new THREE.Vector3(0, 3.3, 6.2).applyAxisAngle(
+    new THREE.Vector3(0, 1, 0), p.raiz.rotation.y);
+  alvoCamara.copy(p.raiz.position).add(atras);
+  camera.position.lerp(alvoCamara, Math.min(1, dt * 4.5));
+  camera.lookAt(p.raiz.position.x, p.raiz.position.y + 1.5, p.raiz.position.z);
+}
+
+// ─── CONTROLOS DE VISUALIZAÇÃO ──────────────────────────────────────────────
+const NOTAS = {
+  wireframe: '<strong>Malha poligonal.</strong> Sem preenchimento, ficam visíveis os triângulos que compõem cada primitiva. Toda a superfície curva é uma aproximação poligonal: a cabeça é uma esfera discretizada em 20 por 16 segmentos.',
+  luzes: '<strong>Iluminação.</strong> Com apenas luz ambiente uniforme, as superfícies ficam planas e o volume desaparece: sem variação de intensidade em função da orientação de cada face, a geometria tridimensional lê-se como recorte plano.',
+  nevoeiro: '<strong>Atenuação atmosférica.</strong> A perda de contraste com a distância é um indicador de profundidade independente da perspetiva. Sem ela, o fundo do corredor mantém o mesmo contraste do primeiro plano e a profundidade lê-se pior.',
+  camara: '<strong>Ponto de vista.</strong> A mesma geometria, com outra matriz de vista. A perspetiva não é uma propriedade do modelo, mas da relação entre observador e cena.',
+  base: '<strong>Projeção em perspetiva.</strong> A câmara aplica uma matriz de projeção com campo de visão de 60°, produzindo a convergência das linhas paralelas do corredor num ponto de fuga.',
+};
+
+const nota = document.getElementById('nota-conceito');
+function ligar(id, chave, aoMudar) {
+  const btn = document.getElementById(id);
+  btn.addEventListener('click', () => {
+    const activo = btn.getAttribute('aria-pressed') === 'true';
+    btn.setAttribute('aria-pressed', String(!activo));
+    aoMudar(!activo);
+    nota.innerHTML = NOTAS[chave];
+  });
+}
+
+ligar('btn-wireframe', 'wireframe', v => {
+  materiais.forEach(m => { m.wireframe = v; });
+});
+ligar('btn-luzes', 'luzes', v => { luzes.visible = v; });
+ligar('btn-nevoeiro', 'nevoeiro', v => { scene.fog = v ? new THREE.FogExp2(COR.fundo, 0.013) : null; });
+ligar('btn-camara', 'camara', v => { camaraAerea.activa = v; });
+
+// Os dois últimos começam activos; o clique desliga-os
+document.getElementById('btn-luzes').setAttribute('aria-pressed', 'true');
+document.getElementById('btn-nevoeiro').setAttribute('aria-pressed', 'true');
+
+// ─── REDIMENSIONAMENTO ──────────────────────────────────────────────────────
+function redimensionar() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();   // recalcula a matriz de projeção
+}
+addEventListener('resize', redimensionar);
+redimensionar();
+
+// ─── CICLO DE RENDERIZAÇÃO ──────────────────────────────────────────────────
+const mTri  = document.getElementById('m-tri');
+const mDraw = document.getElementById('m-draw');
+const mFps  = document.getElementById('m-fps');
+
+let anterior = performance.now();
+let acumulado = 0, fotogramas = 0;
+
+function ciclo(agora) {
+  const dt = Math.min((agora - anterior) / 1000, 0.05);   // limita saltos grandes
+  anterior = agora;
+
+  atualizarMovimento(dt);
+  atualizarCamara(dt);
+  renderer.render(scene, camera);
+
+  acumulado += dt; fotogramas++;
+  if (acumulado >= 0.5) {
+    mTri.textContent  = renderer.info.render.triangles.toLocaleString('pt-PT');
+    mDraw.textContent = renderer.info.render.calls;
+    mFps.textContent  = Math.round(fotogramas / acumulado);
+    acumulado = 0; fotogramas = 0;
+  }
+  requestAnimationFrame(ciclo);
+}
+
+p.raiz.position.z = COMPRIMENTO / 2 - 6;
+estado.anguloAlvo = Math.PI;
+p.raiz.rotation.y = Math.PI;
+requestAnimationFrame(ciclo);
+</script>
+</body>
+</html>
